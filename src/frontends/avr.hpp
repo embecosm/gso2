@@ -17,14 +17,14 @@ public:
             registers[i] = 0;
     }
 
-    uint8_t getRegister(Slot &reg)
+    uint8_t getRegister(Slot *reg)
     {
-        return registers[reg.getValue()];
+        return registers[reg->getValue()];
     }
 
-    void setRegister(Slot &reg, uint8_t value)
+    void setRegister(Slot *reg, uint8_t value)
     {
-        registers[reg.getValue()] = value;
+        registers[reg->getValue()] = value;
     }
 
 
@@ -61,56 +61,34 @@ enum AvrRegisterClasses
 {
     ALL_REGISTERS,
     REGISTERS_16PLUS,
+    REGISTER0,
+    REGISTER1
 };
 
-class AvrAdd : public Instruction
+class AVRRegisterSlot : public RegisterSlot
 {
 public:
-    // Uops generateUops()
-    // {
-    //     // TODO need to define our backend somewhere
-    //     auto bb = backend->newBasicBlock();
-
-    //     auto reg_slot1 = backend->newRegisterSlot(AvrRegisterClasses::ALL_REGISTERS);
-    //     auto reg_slot2 = backend->newRegisterSlot(AvrRegisterClasses::ALL_REGISTERS);
-
-    //     bb->start();
-    //     bb->add_r8(reg_slot1, reg_slot1, reg_slot2);
-    //     bb->end();
-    // }
-
-    void execute(TargetMachine *_mach, std::vector<Slot> &slots)
+    AVRRegisterSlot(AvrRegisterClasses rclass, bool _write=false, bool _read=true) : RegisterSlot(_write, _read)
     {
-        // assert slots.size() == 2
-        // assert slot types are RegisterSlots
-
-        AvrMachine *mach = static_cast<AvrMachine*>(_mach);
-        unsigned char rA = mach->getRegister(slots[0]);
-        unsigned char rB = mach->getRegister(slots[1]);
-
-        rA = rA + rB;
-
-        mach->setRegister(slots[0], rA);
-    }
-
-    // Return the number and types of register slots required
-    //    which ones are read and written
-    std::vector<Slot> getSlots()
-    {
-        return {RegisterSlot(AvrRegisterClasses::ALL_REGISTERS, true),
-            RegisterSlot(AvrRegisterClasses::ALL_REGISTERS)};
-    }
-
-    std::string toString()
-    {
-        return "add S1, S2";
-    }
-
-    std::string toString(std::vector<Slot> &slots)
-    {
-        return std::string("add r") + std::to_string(slots[0].getValue()) + ", r" + std::to_string(slots[1].getValue());
+        switch(rclass)
+        {
+        case ALL_REGISTERS:
+            setValidArguments({0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31});
+            break;
+        case REGISTERS_16PLUS:
+            setValidArguments({16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31});
+            break;
+        case REGISTER0:
+            setValidArguments({0});
+            break;
+        case REGISTER1:
+            setValidArguments({1});
+            break;
+        }
     }
 };
 
+
+ #include "avr_gen.hpp"
 
 #endif

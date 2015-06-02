@@ -1,0 +1,38 @@
+add:
+  operands:
+    - ["rw", "ALL_REGISTERS"]
+    - ["r", "ALL_REGISTERS"]
+  implementation: |
+    rA = rA + rB;
+  print_name: "add"
+sub:
+  operands:
+    - ["rw", "ALL_REGISTERS"]
+    - ["r", "ALL_REGISTERS"]
+  implementation: |
+    rA = rA - rB;
+  print_name: "sub"
+eor:
+  operands:
+    - ["rw", "ALL_REGISTERS"]
+    - ["r", "ALL_REGISTERS"]
+  implementation: |
+    rA = rA ^ rB;
+  print_name: "eor"
+and:
+  operands:
+    - ["rw", "ALL_REGISTERS"]
+    - ["r", "ALL_REGISTERS"]
+  implementation: |
+    rA = rA & rB;
+  print_name: "eor"
+mul:
+  operands:
+    - ["r", "ALL_REGISTERS"]
+    - ["r", "ALL_REGISTERS"]
+    - ["w", "REGISTER0"]
+    - ["w", "REGISTER1"]
+  implementation: |
+    rC = (rA * rB) & 0xFF;
+    rD = (rA * rB) >> 8;
+  print_name: "mul"

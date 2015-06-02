@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include "frontends/avr.hpp"
 
@@ -13,28 +14,50 @@ int main(int argc, char *argv[])
     // Initialise backend
 
     AvrMachine mach;
-    AvrAdd add;
 
-    auto slots1 = add.getSlots();
-    auto slots2 = add.getSlots();
+    vector<Instruction*> insns;
 
-    slots1[0].setValue(0);
-    slots1[1].setValue(2);
+    insns.push_back(new Avr_add());
+    insns.push_back(new Avr_eor());
+    insns.push_back(new Avr_mul());
 
-    slots2[0].setValue(2);
-    slots2[1].setValue(1);
+    vector<Slot*> slots;
 
-    mach.setRegisterValue(0, 0x1);
-    mach.setRegisterValue(1, 0x2);
-    mach.setRegisterValue(2, 0x4);
-    mach.setRegisterValue(3, 0x8);
+    for(auto insn: insns)
+    {
+        auto s1 = insn->getSlots();
+        slots.insert(slots.end(), s1.begin(), s1.end());
+    }
 
-    add.execute(&mach, slots1);
-    add.execute(&mach, slots2);
+    int n = 0;
+    for(auto slot: slots)
+    {
+        auto va = static_cast<RegisterSlot*>(slot)->getValidArguments();
 
-    cout << add.toString(slots1) << endl << add.toString(slots2) << endl;
+        cout << *va.begin() << endl;
+        slot->setValue(*va.begin());
+    }
 
-    cout << hex << "0x" << (unsigned)mach.getRegisterValue(0) << endl;
+    // slots[0].setValue(0);
+    // slots[1].setValue(2);
+
+    // slots[2].setValue(2);
+    // slots[3].setValue(1);
+
+    for(int i = 0; i < 32; ++i)
+        mach.setRegisterValue(i, i+1);
+
+    auto current_slot = &slots[0];
+
+    for(auto insn: insns)
+    {
+        cout << insn->toString(current_slot) << endl;
+
+        auto n = insn->execute(&mach, current_slot);
+        current_slot += n;
+    }
+    // add.execute(&mach, &slots[0]);
+    // add.execute(&mach, &slots[2]);
 
     cout << mach.toString();
 
