@@ -10,17 +10,17 @@ public:
     // Instruction();
     // virtual ~Instruction();
 
-    virtual Uops generateUops() = 0;
+    // virtual Uops generateUops() = 0;
 };
 
 class TargetMachine
 {
 public:
-    TargetMachine();
-    virtual ~TargetMachine();
+    // TargetMachine();
+    // virtual ~TargetMachine();
 
 
-    virtual setBackend(Backend *backend);
+    // virtual void setBackend(Backend *backend);
 
 // protected:
     Backend *backend;

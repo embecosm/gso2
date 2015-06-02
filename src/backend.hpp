@@ -47,10 +47,10 @@ protected:
 class Backend
 {
 public:
-    Backend();
-    virtual ~Backend();
+    // Backend();
+    // virtual ~Backend();
 
-    InstructionTemplate startInstructionTemplate() = 0;
+    // InstructionTemplate startInstructionTemplate() = 0;
 
 
 };
