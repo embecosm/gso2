@@ -1,7 +1,9 @@
 #include <iostream>
+#include <algorithm>
 #include <memory>
 
 #include "frontends/avr.hpp"
+#include "algorithms/canonical.hpp"
 
 using namespace std;
 
@@ -19,7 +21,8 @@ int main(int argc, char *argv[])
 
     insns.push_back(new Avr_add());
     insns.push_back(new Avr_eor());
-    insns.push_back(new Avr_mul());
+    insns.push_back(new Avr_eor());
+    // insns.push_back(new Avr_mul());
 
     vector<Slot*> slots;
 
@@ -35,29 +38,25 @@ int main(int argc, char *argv[])
         auto va = static_cast<RegisterSlot*>(slot)->getValidArguments();
 
         cout << *va.begin() << endl;
-        slot->setValue(*va.begin());
+        slot->setValue(*min_element(va.begin(), va.end()));
     }
 
-    // slots[0].setValue(0);
-    // slots[1].setValue(2);
-
-    // slots[2].setValue(2);
-    // slots[3].setValue(1);
-
-    for(int i = 0; i < 32; ++i)
-        mach.setRegisterValue(i, i+1);
-
-    auto current_slot = &slots[0];
-
-    for(auto insn: insns)
+    do
     {
-        cout << insn->toString(current_slot) << endl;
+        for(int i = 0; i < 32; ++i)
+            mach.setRegisterValue(i, i+1);
 
-        auto n = insn->execute(&mach, current_slot);
-        current_slot += n;
-    }
-    // add.execute(&mach, &slots[0]);
-    // add.execute(&mach, &slots[2]);
+        auto current_slot = &slots[0];
+
+        for(auto insn: insns)
+        {
+            cout << insn->toString(current_slot) << endl;
+
+            auto n = insn->execute(&mach, current_slot);
+            current_slot += n;
+        }
+        cout << endl;
+    } while(nextCanonical(slots));
 
     cout << mach.toString();
 
