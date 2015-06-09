@@ -26,7 +26,7 @@ void setupSlots(vector<Slot*> slots, vector<unordered_set<unsigned>> valids)
 {
     BOOST_CHECK_EQUAL(slots.size(), valids.size());
 
-    for(int i = 0; i < slots.size(); i++)
+    for(unsigned i = 0; i < slots.size(); i++)
     {
         RegisterSlot *rs = (RegisterSlot*) slots[i];
 
@@ -35,7 +35,7 @@ void setupSlots(vector<Slot*> slots, vector<unordered_set<unsigned>> valids)
     }
 }
 
-void checkTestData(vector<Slot *> slots, string filename)
+void checkTestData(vector<Slot *> slots, string filename, bool (*testFn)(vector<Slot*>))
 {
     ifstream infile(filename);
     string start;
@@ -45,7 +45,7 @@ void checkTestData(vector<Slot *> slots, string filename)
         "Test data file \"" + filename + "\" is corrupt at the start");
     n_tests = stoi(start);
 
-    for(int i = 0; i < n_tests; ++i)
+    for(unsigned i = 0; i < n_tests; ++i)
     {
         string line;
 
@@ -59,7 +59,7 @@ void checkTestData(vector<Slot *> slots, string filename)
         {
             string token;
 
-            BOOST_CHECK_MESSAGE(getline(ss, token, ','),
+            BOOST_REQUIRE_MESSAGE(getline(ss, token, ','),
                 "Test data file \"" + filename +
                 "\" has incorrect number of entries for test "+to_string(i));
             seq.push_back(stoi(token));
@@ -68,7 +68,8 @@ void checkTestData(vector<Slot *> slots, string filename)
         BOOST_CHECK_EQUAL(seq.size(), slots.size());
         BOOST_CHECK(getSlotValues(slots) == seq);
 
-        nextCanonical(slots);
+        // nextCanonical(slots);
+        (*testFn)(slots);
     }
 }
 
@@ -85,7 +86,7 @@ BOOST_AUTO_TEST_CASE( standard_tests )
                 {0,1,2,3}}
             );
 
-        checkTestData(slots, "data/standard_1.csv");
+        checkTestData(slots, "data/standard_1.csv", nextCanonical);
     }
 
     { // Eight slots, full range of values
@@ -104,7 +105,7 @@ BOOST_AUTO_TEST_CASE( standard_tests )
                 {0,1,2,3,4,5,6,7,8}}
             );
 
-        checkTestData(slots, "data/standard_2.csv");
+        checkTestData(slots, "data/standard_2.csv", nextCanonical);
     }
 }
 
@@ -237,7 +238,7 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
                 {0,2,3}}
             );
 
-        checkTestData(slots, "data/sparse_4.csv");
+        checkTestData(slots, "data/sparse_4.csv", nextCanonical);
     }
 
     { // 11 slots, limited values
@@ -260,7 +261,7 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
                 {0,1}}
             );
 
-        checkTestData(slots, "data/sparse_5.csv");
+        checkTestData(slots, "data/sparse_5.csv", nextCanonical);
     }
 }
 
@@ -274,9 +275,10 @@ BOOST_AUTO_TEST_CASE( long_tests )
             RegisterSlot *rs = new RegisterSlot();
             rs->setValidArguments({0,1,2,3});
             rs->setValue(0);
+            slots.push_back(rs);
         }
 
-        checkTestData(slots, "data/long_1.csv");
+        checkTestData(slots, "data/long_1.csv", nextCanonical);
     }
 
     { // 20 slots, very limited values
@@ -287,8 +289,45 @@ BOOST_AUTO_TEST_CASE( long_tests )
             RegisterSlot *rs = new RegisterSlot();
             rs->setValidArguments({0,1});
             rs->setValue(0);
+            slots.push_back(rs);
         }
 
-        checkTestData(slots, "data/long_1.csv");
+        checkTestData(slots, "data/long_2.csv", nextCanonical);
+    }
+}
+
+BOOST_AUTO_TEST_CASE( basic_tests )
+{
+    {   // Four slots, full range of values
+        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot(), new RegisterSlot()};
+
+        setupSlots(slots, {
+                {0,1,2,3},
+                {0,1,2,3},
+                {0,1,2,3},
+                {0,1,2,3}}
+            );
+
+        checkTestData(slots, "data/standard_1.csv", nextCanonicalBasic);
+    }
+
+    { // Eight slots, full range of values
+        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot(), new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot(), new RegisterSlot(), new RegisterSlot()};
+
+        setupSlots(slots, {
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8}}
+            );
+
+        checkTestData(slots, "data/standard_2.csv", nextCanonicalBasic);
     }
 }

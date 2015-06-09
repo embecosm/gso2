@@ -110,3 +110,33 @@ bool nextCanonical(std::vector<Slot*> slotlist)
 
     return false;
 }
+
+
+bool nextCanonicalBasic(std::vector<Slot*> slotlist)
+{
+    for(int i = slotlist.size()-1; i > 0; i--)
+    {
+        auto rs_i   = (RegisterSlot *) slotlist[i];
+        auto va_i   = rs_i->getValidArguments();
+
+        unsigned next = rs_i->getValue() + 1;
+
+        unsigned max = 0;
+        for(int j = 0; j < i; ++j)
+            if(slotlist[j]->getValue() > max)
+                max = slotlist[j]->getValue();
+
+        if(next > max + 1)
+        {
+            rs_i->setValue(0);
+            continue;
+        }
+        else
+        {
+            rs_i->setValue(next);
+            return true;
+        }
+    }
+
+    return false;
+}

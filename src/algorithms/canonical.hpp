@@ -5,5 +5,6 @@
 #include "../slots.hpp"
 
 bool nextCanonical(std::vector<Slot*> slotlist);
+bool nextCanonicalBasic(std::vector<Slot*> slotlist);
 
 #endif
