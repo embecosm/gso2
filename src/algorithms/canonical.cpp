@@ -59,8 +59,10 @@ bool nextCanonical(std::vector<Slot*> slotlist, const vector<vector<unsigned>> s
         {
             if(reg < next && reg > current)
             {
+                // Since va_i is sorted, we have found the lowest
                 next = reg;
                 found = true;
+                break;
             }
         }
 
@@ -81,12 +83,10 @@ bool nextCanonical(std::vector<Slot*> slotlist, const vector<vector<unsigned>> s
             bool found = false;
             for(int j = 0; j < i; ++j)
             {
-                auto rs_j = (RegisterSlot *) slotlist[j];
-                if(rs_j->getValue() == r)
-                {
+                auto rs_j_val = ((RegisterSlot *) slotlist[j])->getValue();
+                if(rs_j_val == r)
                     found = true;
-                }
-                if(rs_j->getValue() == next)
+                if(rs_j_val == next)
                     found_next = true;
             }
             if(!found && binary_search(va_i.begin(), va_i.end(), r))
@@ -127,8 +127,11 @@ bool nextCanonicalBasic(std::vector<Slot*> slotlist)
 
         unsigned max = 0;
         for(int j = 0; j < i; ++j)
-            if(slotlist[j]->getValue() > max)
-                max = slotlist[j]->getValue();
+        {
+            auto val = slotlist[j]->getValue();
+            if(val > max)
+                max = val;
+        }
 
         if(next > max + 1)
         {
