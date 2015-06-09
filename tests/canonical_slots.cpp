@@ -10,6 +10,8 @@
 
 using namespace std;
 
+template class std::vector<Slot*>;
+
 vector<unsigned> getSlotValues(vector<Slot*> slots)
 {
     vector<unsigned> values;
@@ -22,20 +24,63 @@ vector<unsigned> getSlotValues(vector<Slot*> slots)
     return values;
 }
 
-void setupSlots(vector<Slot*> slots, vector<unordered_set<unsigned>> valids)
+void setupSlots(vector<Slot*> slots, vector<vector<unsigned>> valids)
 {
-    BOOST_CHECK_EQUAL(slots.size(), valids.size());
+    BOOST_REQUIRE_EQUAL(slots.size(), valids.size());
 
     for(unsigned i = 0; i < slots.size(); i++)
     {
         RegisterSlot *rs = (RegisterSlot*) slots[i];
 
         rs->setValidArguments(valids[i]);
-        rs->setValue(*min_element(valids[i].begin(), valids[i].end()));
+        rs->setValue(*valids[i].begin());
     }
 }
 
-void checkTestData(vector<Slot *> slots, string filename, bool (*testFn)(vector<Slot*>))
+void checkTestData(vector<Slot *> slots, string filename)
+{
+    ifstream infile(filename);
+    string start;
+    unsigned n_tests;
+
+    BOOST_REQUIRE_MESSAGE(getline(infile, start),
+        "Test data file \"" + filename + "\" is corrupt at the start");
+    n_tests = stoi(start);
+
+    auto canonical_skips = initialiseCanonical(slots);
+
+    for(unsigned i = 0; i < n_tests; ++i)
+    {
+        string line;
+
+        BOOST_REQUIRE_MESSAGE(getline(infile, line),
+            "Test data file \"" + filename + "\" does not have enough entries");
+
+        vector<unsigned> seq;
+        istringstream ss(line);
+
+        for(unsigned j = 0; j < slots.size(); ++j)
+        {
+            string token;
+
+            BOOST_REQUIRE_MESSAGE(getline(ss, token, ','),
+                "Test data file \"" + filename +
+                "\" has incorrect number of entries for test "+to_string(i));
+            seq.push_back(stoi(token));
+        }
+
+        // for(auto s: getSlotValues(slots))
+        //     cout << s << " ";
+        // cout << endl;
+
+        BOOST_REQUIRE_EQUAL(seq.size(), slots.size());
+        BOOST_REQUIRE(getSlotValues(slots) == seq);
+
+        nextCanonical(slots, canonical_skips);
+    }
+}
+
+void checkTestDataBasic(vector<Slot *> slots, string filename)
 {
     ifstream infile(filename);
     string start;
@@ -65,11 +110,14 @@ void checkTestData(vector<Slot *> slots, string filename, bool (*testFn)(vector<
             seq.push_back(stoi(token));
         }
 
-        BOOST_CHECK_EQUAL(seq.size(), slots.size());
-        BOOST_CHECK(getSlotValues(slots) == seq);
+        // for(auto s: getSlotValues(slots))
+        //     cout << s << " ";
+        // cout << endl;
 
-        // nextCanonical(slots);
-        (*testFn)(slots);
+        BOOST_REQUIRE_EQUAL(seq.size(), slots.size());
+        BOOST_REQUIRE(getSlotValues(slots) == seq);
+
+        nextCanonicalBasic(slots);
     }
 }
 
@@ -86,7 +134,7 @@ BOOST_AUTO_TEST_CASE( standard_tests )
                 {0,1,2,3}}
             );
 
-        checkTestData(slots, "data/standard_1.csv", nextCanonical);
+        checkTestData(slots, "data/standard_1.csv");
     }
 
     { // Eight slots, full range of values
@@ -95,17 +143,17 @@ BOOST_AUTO_TEST_CASE( standard_tests )
             new RegisterSlot(), new RegisterSlot(), new RegisterSlot()};
 
         setupSlots(slots, {
-                {0,1,2,3,4,5,6,7,8},
-                {0,1,2,3,4,5,6,7,8},
-                {0,1,2,3,4,5,6,7,8},
-                {0,1,2,3,4,5,6,7,8},
-                {0,1,2,3,4,5,6,7,8},
-                {0,1,2,3,4,5,6,7,8},
-                {0,1,2,3,4,5,6,7,8},
-                {0,1,2,3,4,5,6,7,8}}
+                {0,1,2,3,4,5,6,7},
+                {0,1,2,3,4,5,6,7},
+                {0,1,2,3,4,5,6,7},
+                {0,1,2,3,4,5,6,7},
+                {0,1,2,3,4,5,6,7},
+                {0,1,2,3,4,5,6,7},
+                {0,1,2,3,4,5,6,7},
+                {0,1,2,3,4,5,6,7}}
             );
 
-        checkTestData(slots, "data/standard_2.csv", nextCanonical);
+        checkTestData(slots, "data/standard_2.csv");
     }
 }
 
@@ -122,11 +170,13 @@ BOOST_AUTO_TEST_CASE( single_tests )
                 {0}}
             );
 
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
+        auto canonical_skips = initialiseCanonical(slots);
+
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
     }
 
     { // Four slots, single values
@@ -140,11 +190,13 @@ BOOST_AUTO_TEST_CASE( single_tests )
                 {5}}
             );
 
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({1,3,2,5}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({1,3,2,5}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({1,3,2,5}));
+        auto canonical_skips = initialiseCanonical(slots);
+
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,3,2,5}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,3,2,5}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,3,2,5}));
     }
 }
 
@@ -160,11 +212,13 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
                 {0,1}}
             );
 
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,1}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+        auto canonical_skips = initialiseCanonical(slots);
+
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
     }
 
     { // Three slots, simple
@@ -177,15 +231,17 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
                 {0,1}}
             );
 
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,1}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,2,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,2,1}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+        auto canonical_skips = initialiseCanonical(slots);
+
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
     }
 
     { // Four slots, simple
@@ -199,27 +255,29 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
                 {0,1}}
             );
 
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0,1}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,2,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,2,1}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,2,0,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,2,0,1}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,2,2,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,2,2,1}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,2,3,0}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,2,3,1}));
-        nextCanonical(slots);
-        BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
+        auto canonical_skips = initialiseCanonical(slots);
+
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,2,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,2,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,0,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,0,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,2,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,2,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,3,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,3,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
     }
 
     { // 8 slots, limited values
@@ -238,7 +296,7 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
                 {0,2,3}}
             );
 
-        checkTestData(slots, "data/sparse_4.csv", nextCanonical);
+        checkTestData(slots, "data/sparse_4.csv");
     }
 
     { // 11 slots, limited values
@@ -261,7 +319,7 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
                 {0,1}}
             );
 
-        checkTestData(slots, "data/sparse_5.csv", nextCanonical);
+        checkTestData(slots, "data/sparse_5.csv");
     }
 }
 
@@ -278,7 +336,7 @@ BOOST_AUTO_TEST_CASE( long_tests )
             slots.push_back(rs);
         }
 
-        checkTestData(slots, "data/long_1.csv", nextCanonical);
+        checkTestData(slots, "data/long_1.csv");
     }
 
     { // 20 slots, very limited values
@@ -292,7 +350,7 @@ BOOST_AUTO_TEST_CASE( long_tests )
             slots.push_back(rs);
         }
 
-        checkTestData(slots, "data/long_2.csv", nextCanonical);
+        checkTestData(slots, "data/long_2.csv");
     }
 }
 
@@ -309,7 +367,7 @@ BOOST_AUTO_TEST_CASE( basic_tests )
                 {0,1,2,3}}
             );
 
-        checkTestData(slots, "data/standard_1.csv", nextCanonicalBasic);
+        checkTestDataBasic(slots, "data/standard_1.csv");
     }
 
     { // Eight slots, full range of values
@@ -328,6 +386,34 @@ BOOST_AUTO_TEST_CASE( basic_tests )
                 {0,1,2,3,4,5,6,7,8}}
             );
 
-        checkTestData(slots, "data/standard_2.csv", nextCanonicalBasic);
+        checkTestDataBasic(slots, "data/standard_2.csv");
+    }
+}
+
+BOOST_AUTO_TEST_CASE( overspecified_tests )
+{
+    {   // Three slots, too manyvalues
+        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot()};
+
+        setupSlots(slots, {
+                {0,1,2,3,5},
+                {0,1,2,3,4},
+                {0,1,2,3,7}}
+            );
+
+        auto canonical_skips = initialiseCanonical(slots);
+
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,2}));
+        nextCanonical(slots, canonical_skips);
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
     }
 }

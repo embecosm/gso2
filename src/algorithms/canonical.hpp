@@ -4,7 +4,8 @@
 #include <vector>
 #include "../slots.hpp"
 
-bool nextCanonical(std::vector<Slot*> slotlist);
+std::vector<std::vector<unsigned>> initialiseCanonical(std::vector<Slot*> slotlist);
+bool nextCanonical(std::vector<Slot*> slotlist, const std::vector<std::vector<unsigned>> skips);
 bool nextCanonicalBasic(std::vector<Slot*> slotlist);
 
 #endif

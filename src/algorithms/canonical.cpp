@@ -7,16 +7,16 @@
 
 using namespace std;
 
-bool nextCanonical(std::vector<Slot*> slotlist)
+vector<vector<unsigned>> initialiseCanonical(vector<Slot*> slotlist)
 {
     // Generate classes skip list
-    vector<unordered_set<unsigned>> skips;
+    vector<vector<unsigned>> skips;
 
     for(unsigned i = 0; i < slotlist.size(); ++i)
     {
         if(i == 0)
         {
-            skips.push_back(unordered_set<unsigned>());
+            skips.push_back(vector<unsigned>());
             continue;
         }
 
@@ -26,21 +26,26 @@ bool nextCanonical(std::vector<Slot*> slotlist)
         auto va_i   = rs_i->getValidArguments();
         auto va_im1 = rs_im1->getValidArguments();
 
-        unordered_set<unsigned> current_skip(skips[i-1]);
+        vector<unsigned> current_skip(skips[i-1]);
 
         for(auto valid_register: va_i)
         {
-            if(va_im1.find(valid_register) == va_im1.end())
+            if(!binary_search(va_im1.begin(), va_im1.end(), valid_register))
             {
                 // A register in the current class was not found in the
                 // previous class, so add it to the skip list.
-                current_skip.insert(valid_register);
+                current_skip.push_back(valid_register);
             }
         }
 
         skips.push_back(current_skip);
     }
 
+    return skips;
+}
+
+bool nextCanonical(std::vector<Slot*> slotlist, const vector<vector<unsigned>> skips)
+{
     for(int i = slotlist.size()-1; i > 0;)
     {
         auto rs_i   = (RegisterSlot *) slotlist[i];
@@ -48,7 +53,7 @@ bool nextCanonical(std::vector<Slot*> slotlist)
 
         // Get next highest valid argument
         unsigned current = rs_i->getValue();
-        unsigned next    = *max_element(va_i.begin(), va_i.end())+1;
+        unsigned next    = va_i.back()+1;
         bool found = false;
         for(auto reg: va_i)
         {
@@ -61,7 +66,7 @@ bool nextCanonical(std::vector<Slot*> slotlist)
 
         if(!found)
         {
-            rs_i->setValue(*min_element(va_i.begin(), va_i.end()));
+            rs_i->setValue(va_i.front());
             i--;
             continue;
         }
@@ -71,7 +76,6 @@ bool nextCanonical(std::vector<Slot*> slotlist)
         bool found_r = false;
         bool found_next = false;
 
-        // PROBLEMS
         for(unsigned r = 0; r < next; ++r)
         {
             bool found = false;
@@ -85,7 +89,7 @@ bool nextCanonical(std::vector<Slot*> slotlist)
                 if(rs_j->getValue() == next)
                     found_next = true;
             }
-            if(!found && va_i.find(r) != va_i.end())
+            if(!found && binary_search(va_i.begin(), va_i.end(), r))
             {
                 found_r = true;
             }
@@ -93,13 +97,13 @@ bool nextCanonical(std::vector<Slot*> slotlist)
 
         if(found_r && !found_next) // && next not in prev slots
         {
-            if(skips[i].find(next) != skips[i].end())
+            if(binary_search(skips[i].begin(), skips[i].end(), next))
             {
                 continue;
             }
             else
             {
-                rs_i->setValue(*min_element(va_i.begin(), va_i.end()));
+                rs_i->setValue(va_i.front());
                 i--;
                 continue;
             }

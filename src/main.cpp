@@ -41,6 +41,8 @@ int main(int argc, char *argv[])
         slot->setValue(*min_element(va.begin(), va.end()));
     }
 
+    auto canonical_skips = initialiseCanonical(slots);
+
     do
     {
         for(int i = 0; i < 32; ++i)
@@ -56,7 +58,7 @@ int main(int argc, char *argv[])
             current_slot += n;
         }
         cout << endl;
-    } while(nextCanonical(slots));
+    } while(nextCanonicalBasic(slots));
 
     cout << mach.toString();
 

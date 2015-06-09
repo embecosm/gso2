@@ -1,7 +1,8 @@
 #ifndef __SLOTS_HPP__
 #define __SLOTS_HPP__
 
-#include <unordered_set>
+#include <vector>
+#include <algorithm>
 
 class Slot
 {
@@ -30,20 +31,21 @@ public:
         write = _write;
     }
 
-    std::unordered_set<unsigned> getValidArguments()
+    std::vector<unsigned> getValidArguments()
     {
         return validArguments;
     }
 
-    void setValidArguments(std::unordered_set<unsigned> validArguments_)
+    void setValidArguments(std::vector<unsigned> validArguments_)
     {
         validArguments = validArguments_;
+        std::sort(validArguments.begin(), validArguments.end());
     }
 
 private:
     bool read, write;
 
-    std::unordered_set<unsigned> validArguments;
+    std::vector<unsigned> validArguments;
 };
 
 
