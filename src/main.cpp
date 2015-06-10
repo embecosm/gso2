@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
             current_slot += n;
         }
         cout << endl;
-    } while(nextCanonicalBasic(slots));
+    } while(nextCanonical(slots, canonical_skips));
 
     cout << mach.toString();
 
