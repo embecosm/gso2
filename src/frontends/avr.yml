@@ -25,7 +25,7 @@ and:
     - ["r", "ALL_REGISTERS"]
   implementation: |
     rA = rA & rB;
-  print_name: "eor"
+  print_name: "and"
 mul:
   operands:
     - ["r", "ALL_REGISTERS"]

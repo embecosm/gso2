@@ -8,10 +8,10 @@ GENERATEDSOURCES=src/frontends/avr_gen.hpp
 
 all: omega
 
-omega: $(SOURCES) $(GENERATEDSOURCES)
+omega: $(SOURCES) $(GENERATEDSOURCES) $(MAINSOURCE)
 	g++-4.9 -std=c++11 $(SOURCES) $(MAINSOURCE) -o omega -g -Wall
 
-%_gen.hpp: %.yml
+%_gen.hpp: %.yml src/generate.py
 	python src/generate.py $< $@
 
 test:
@@ -25,3 +25,7 @@ tests/tests: $(TESTSOURCES) $(SOURCES)  Makefile
 
 tests/canonical_speed: tests/canonical_speed.cpp $(SOURCES) Makefile
 	g++-4.9 -std=c++11 tests/canonical_speed.cpp $(SOURCES) -o tests/canonical_speed -I src -O3 -g
+
+clean:
+	rm -f omega tests/tests tests/canonical_speed
+	rm -f $(GENERATEDSOURCES)
