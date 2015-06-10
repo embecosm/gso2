@@ -2,11 +2,17 @@
 SOURCES=src/algorithms/*.cpp
 MAINSOURCE=src/main.cpp
 TESTSOURCES=tests/canonical_slots.cpp
+GENERATEDSOURCES=src/frontends/avr_gen.hpp
 
 .PHONY=test all
 
-all:
+all: omega
+
+omega: $(SOURCES) $(GENERATEDSOURCES)
 	g++-4.9 -std=c++11 $(SOURCES) $(MAINSOURCE) -o omega -g -Wall
+
+%_gen.hpp: %.yml
+	python src/generate.py $< $@
 
 test:
 	make buildtest
