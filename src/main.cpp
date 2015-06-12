@@ -5,6 +5,7 @@
 #include "frontends/avr.hpp"
 #include "algorithms/canonical.hpp"
 #include "algorithms/bruteforce.hpp"
+#include "algorithms/test.hpp"
 
 using namespace std;
 
@@ -16,16 +17,17 @@ int main(int argc, char *argv[])
 
     // Initialise backend
 
-    AvrMachine mach, mach_expected;
-    uint8_t vals[32];
+    function<void(AvrMachine&)> goal(
+        [](AvrMachine &mach){
+            mach.setRegisterValue(0, mach.getRegisterValue(0)*4+3);
+        }
+    );
 
-    for(int i = 0; i < 32; ++i)
-    {
-        vals[i] = rand() & 0xFF;
-        mach_expected.setRegisterValue(i, vals[i]);
-    }
+    AvrMachine mach, mach_expected, mach_initial;
 
-    mach_expected.setRegisterValue(0, mach_expected.getRegisterValue(0)*4+1);
+    mach_expected.initialiseRandom();
+    mach_initial = mach_expected;
+    goal(mach_expected);
 
     // Get a list of functions which will construct an instruction
     auto insn_factories = mach.getInstructionFactories();
@@ -63,47 +65,13 @@ int main(int argc, char *argv[])
 
         do
         {
-            for(int i = 0; i < 32; ++i)
-                mach.setRegisterValue(i, vals[i]);
+            mach = mach_initial;
 
-            auto current_slot = &slots[0];
-
-            for(auto insn: insns)
-            {
-                auto n = insn->execute(&mach, current_slot);
-                current_slot += n;
-            }
-
-            if(mach == mach_expected)
+            if(testEquivalence(insns, slots, mach_initial, mach_expected))
             {
                 AvrMachine mach_test;
 
-                bool correct = true;
-                int i;
-                for(i = 0; i < 100; ++i)
-                {
-                    for(int j = 0; j < 32; ++j)
-                    {
-                        uint8_t v = rand() & 0xFF;
-                        mach.setRegisterValue(j, v);
-                        mach_test.setRegisterValue(j, v);
-                    }
-                    mach_test.setRegisterValue(0, mach_test.getRegisterValue(0)*4+1);
-
-                    auto current_slot = &slots[0];
-
-                    for(auto insn: insns)
-                    {
-                        auto n = insn->execute(&mach, current_slot);
-                        current_slot += n;
-                    }
-
-                    if(!(mach == mach_test))
-                    {
-                        correct = false;
-                        break;
-                    }
-                }
+                bool correct = testEquivalenceMultiple(insns, slots, goal);
 
                 if(correct)
                 {

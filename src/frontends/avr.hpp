@@ -20,6 +20,14 @@ public:
             registers[i] = 0;
     }
 
+    void initialiseRandom()
+    {
+        for(int i = 0; i < 32; ++i)
+        {
+            registers[i] = rand() & 0xFF;
+        }
+    }
+
     uint8_t getRegister(Slot *reg)
     {
         return registers[reg->getValue()];
