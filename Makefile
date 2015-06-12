@@ -1,7 +1,7 @@
 
 SOURCES=src/algorithms/*.cpp
 MAINSOURCE=src/main.cpp
-TESTSOURCES=tests/canonical_slots.cpp tests/avr_instruction.cpp
+TESTSOURCES=tests/canonical_slots.cpp tests/avr_instruction.cpp tests/bruteforce.cpp
 TESTS=$(TESTSOURCES:.cpp=.test)
 GENERATEDSOURCES=src/frontends/avr_gen.hpp
 CFLAGS= -std=c++11 -Wall -g -O3
