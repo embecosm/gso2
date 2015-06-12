@@ -36,3 +36,15 @@ mul:
     rC = (rA * rB) & 0xFF;
     rD = (rA * rB) >> 8;
   print_name: "mul"
+inc:
+  operands:
+    - ["rw", "ALL_REGISTERS"]
+  implementation: |
+    rA = rA+1;
+  print_name: "inc"
+dec:
+  operands:
+    - ["rw", "ALL_REGISTERS"]
+  implementation: |
+    rA = rA-1;
+  print_name: "dec"
