@@ -24,10 +24,10 @@ int main(int argc, char *argv[])
     clock_t start, end;
     vector<unsigned> vals;
 
-    for(int i = 0; i < n_slots; ++i)
+    for(unsigned i = 0; i < n_slots; ++i)
         vals.push_back(i);
 
-    for(int i = 0; i < n_slots; ++i)
+    for(unsigned i = 0; i < n_slots; ++i)
     {
         RegisterSlot *rs = new RegisterSlot();
 
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     cout << first_time << endl;
 
 
-    for(int i = 0; i < n_slots; ++i)
+    for(unsigned i = 0; i < n_slots; ++i)
     {
         slots[i]->setValue(0);
     }
