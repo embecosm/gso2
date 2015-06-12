@@ -65,6 +65,16 @@ public:
         return factories;
     }
 
+    bool operator ==(AvrMachine &rhs)
+    {
+        for(int i = 0; i < 32; ++i)
+        {
+            if(registers[i] != rhs.registers[i])
+                return false;
+        }
+        return true;
+    }
+
 private:
     uint8_t registers[32];
 };
