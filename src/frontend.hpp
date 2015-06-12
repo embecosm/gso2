@@ -15,11 +15,12 @@ public:
     // virtual ~Instruction();
 
     virtual unsigned execute(TargetMachine *_mach, Slot **slots) = 0;
-    virtual std::vector<Slot*> getSlots() = 0;
+    virtual std::vector<Slot*> getSlots() {return {};};
 
 
-    virtual std::string toString() = 0;
-    virtual std::string toString(Slot **slots) = 0;
+    virtual std::string toString() { return ""; };
+    virtual std::string toString(Slot **slots) { return "";};
+    virtual std::string getName() { return "";};
 
     // virtual Uops generateUops() = 0;
 };

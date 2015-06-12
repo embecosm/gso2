@@ -25,10 +25,13 @@ protected:
 class RegisterSlot : public Slot
 {
 public:
-    RegisterSlot(bool _write=false, bool _read=true)
+    RegisterSlot(bool _write=false, bool _read=true,
+        std::vector<unsigned> _validArguments={}, unsigned value=0)
     {
         read = _read;
         write = _write;
+        validArguments = _validArguments;
+        setValue(value);
     }
 
     std::vector<unsigned> getValidArguments()
