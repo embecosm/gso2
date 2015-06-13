@@ -40,11 +40,17 @@ inc:
   operands:
     - ["rw", "ALL_REGISTERS"]
   implementation: |
-    rA = rA+1;
+    rA = rA + 1;
   print_name: "inc"
 dec:
   operands:
     - ["rw", "ALL_REGISTERS"]
   implementation: |
-    rA = rA-1;
+    rA = rA - 1;
   print_name: "dec"
+swap:
+  operands:
+    - ["rw", "ALL_REGISTERS"]
+  implementation: |
+    rA = (rA >> 4) | ((rA << 4) & 0xFF);
+  print_name: "swap"
