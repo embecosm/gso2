@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
             slot->setValue(*min_element(va.begin(), va.end()));
         }
 
-        auto canonical_skips = initialiseCanonical(slots);
+        canonicalIterator c_iter(slots);
 
         do
         {
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
                 }
             }
             // break;
-        } while(nextCanonical(slots, canonical_skips));
+        } while(c_iter.next());
 
     } while(bruteforceIterate(insn_factories, current_factories));
 

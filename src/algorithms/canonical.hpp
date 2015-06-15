@@ -4,8 +4,27 @@
 #include <vector>
 #include "../slots.hpp"
 
-std::vector<std::vector<unsigned>> initialiseCanonical(std::vector<Slot*> slotlist);
-bool nextCanonical(std::vector<Slot*> slotlist, const std::vector<std::vector<unsigned>> skips);
-bool nextCanonicalBasic(std::vector<Slot*> slotlist);
+class canonicalIterator
+{
+public:
+    canonicalIterator(std::vector<Slot*> &slotlist_);
+
+    bool next();
+private:
+    std::vector<Slot*> &slotlist;
+    std::vector<std::vector<unsigned>> skips;
+};
+
+class canonicalIteratorBasic
+{
+public:
+    canonicalIteratorBasic(std::vector<Slot*> &slotlist_);
+
+    bool next();
+private:
+    std::vector<Slot*> &slotlist;
+    std::vector<std::vector<unsigned>> skips;
+};
+
 
 #endif

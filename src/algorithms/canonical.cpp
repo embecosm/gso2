@@ -7,11 +7,9 @@
 
 using namespace std;
 
-vector<vector<unsigned>> initialiseCanonical(vector<Slot*> slotlist)
+canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_) :
+    slotlist(slotlist_)
 {
-    // Generate classes skip list
-    vector<vector<unsigned>> skips;
-
     for(unsigned i = 0; i < slotlist.size(); ++i)
     {
         if(i == 0)
@@ -40,11 +38,9 @@ vector<vector<unsigned>> initialiseCanonical(vector<Slot*> slotlist)
 
         skips.push_back(current_skip);
     }
-
-    return skips;
 }
 
-bool nextCanonical(std::vector<Slot*> slotlist, const vector<vector<unsigned>> skips)
+bool canonicalIterator::next()
 {
     for(int i = slotlist.size()-1; i > 0;)
     {
@@ -115,8 +111,11 @@ bool nextCanonical(std::vector<Slot*> slotlist, const vector<vector<unsigned>> s
     return false;
 }
 
+canonicalIteratorBasic::canonicalIteratorBasic(vector<Slot*> &slotlist_) :
+    slotlist(slotlist_)
+{}
 
-bool nextCanonicalBasic(std::vector<Slot*> slotlist)
+bool canonicalIteratorBasic::next()
 {
     for(int i = slotlist.size()-1; i > 0; i--)
     {

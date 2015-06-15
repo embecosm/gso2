@@ -38,10 +38,10 @@ int main(int argc, char *argv[])
 
     cout << "Starting nextCanonical speed test...        " << flush;
     start = clock();
-    auto canonical_skips = initialiseCanonical(slots);
+    canonicalIterator c_iter(slots);
     for(unsigned i = 0; i < n_tests; ++i)
     {
-        nextCanonical(slots, canonical_skips);
+        c_iter.next();
     }
     end = clock();
 
@@ -56,9 +56,10 @@ int main(int argc, char *argv[])
 
     cout << "Starting nextCanonicalBasic speed test...   " << flush;
     start = clock();
+    canonicalIteratorBasic c_iter_basic(slots);
     for(unsigned i = 0; i < n_tests; ++i)
     {
-        nextCanonicalBasic(slots);
+        c_iter_basic.next();
     }
     end = clock();
 
