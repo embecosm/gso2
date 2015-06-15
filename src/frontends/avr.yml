@@ -1,56 +1,71 @@
 add:
   operands:
-    - ["rw", "ALL_REGISTERS"]
-    - ["r", "ALL_REGISTERS"]
+    - modifier: "rw"
+      class: "ALL_REGISTERS"
+    - modifier: "r"
+      class: "ALL_REGISTERS"
   implementation: |
     rA = rA + rB;
   print_name: "add"
 sub:
   operands:
-    - ["rw", "ALL_REGISTERS"]
-    - ["r", "ALL_REGISTERS"]
+    - modifier: "rw"
+      class: "ALL_REGISTERS"
+    - modifier: "r"
+      class: "ALL_REGISTERS"
   implementation: |
     rA = rA - rB;
   print_name: "sub"
 eor:
   operands:
-    - ["rw", "ALL_REGISTERS"]
-    - ["r", "ALL_REGISTERS"]
+    - modifier: "rw"
+      class: "ALL_REGISTERS"
+    - modifier: "r"
+      class: "ALL_REGISTERS"
   implementation: |
     rA = rA ^ rB;
   print_name: "eor"
 and:
   operands:
-    - ["rw", "ALL_REGISTERS"]
-    - ["r", "ALL_REGISTERS"]
+    - modifier: "rw"
+      class: "ALL_REGISTERS"
+    - modifier: "r"
+      class: "ALL_REGISTERS"
   implementation: |
     rA = rA & rB;
   print_name: "and"
 mul:
   operands:
-    - ["r", "ALL_REGISTERS"]
-    - ["r", "ALL_REGISTERS"]
-    - ["w", "REGISTER0"]
-    - ["w", "REGISTER1"]
+    - modifier: "r"
+      class: "ALL_REGISTERS"
+    - modifier: "r"
+      class: "ALL_REGISTERS"
+    - modifier: "w"
+      class: "REGISTER0"
+    - modifier: "w"
+      class: "REGISTER1"
   implementation: |
     rC = (rA * rB) & 0xFF;
     rD = (rA * rB) >> 8;
   print_name: "mul"
 inc:
   operands:
-    - ["rw", "ALL_REGISTERS"]
+    - modifier: "rw"
+      class: "ALL_REGISTERS"
   implementation: |
     rA = rA + 1;
   print_name: "inc"
 dec:
   operands:
-    - ["rw", "ALL_REGISTERS"]
+    - modifier: "rw"
+      class: "ALL_REGISTERS"
   implementation: |
     rA = rA - 1;
   print_name: "dec"
 swap:
   operands:
-    - ["rw", "ALL_REGISTERS"]
+    - modifier: "rw"
+      class: "ALL_REGISTERS"
   implementation: |
     rA = (rA >> 4) | ((rA << 4) & 0xFF);
   print_name: "swap"

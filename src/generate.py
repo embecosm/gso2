@@ -60,6 +60,11 @@ public:
         }}
         return s;
     }}
+
+    std::string getName()
+    {{
+        return "{print_name}";
+    }}
 }};
 """
 
@@ -93,18 +98,18 @@ with open(arguments["OUTPUTFILE"], "w") as fout:
         reg_write = ""
         slots = []
         for i, op in enumerate(operands):
-            if "r" in op[0]:
+            if "r" in op["modifier"]:
                 reg_read += "unsigned char r{} = mach->getRegister(slots[{}]);\n".format(chr(65+i), i)
             else:
                 reg_read += "unsigned char r{} = 0;\n".format(chr(65+i))
 
-            if "w" in op[0]:
+            if "w" in op["modifier"]:
                 reg_write += "mach->setRegister(slots[{}], r{});\n".format(i, chr(65+i))
 
             slots.append("new AVRRegisterSlot(AvrRegisterClasses::{}, {}, {})".format(
-                op[1],
-                "true" if "w" in op[0] else "false",
-                "true" if "r" in op[0] else "false"))
+                op["class"],
+                "true" if "w" in op["modifier"] else "false",
+                "true" if "r" in op["modifier"] else "false"))
         slots = ", ".join(slots)
         n_slots = len(operands)
 
