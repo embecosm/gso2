@@ -1,5 +1,6 @@
 
 SOURCES=src/algorithms/*.cpp
+SOURCES_HPP=src/*.hpp src/*/*.hpp
 MAINSOURCE=src/main.cpp
 TESTSOURCES=tests/canonical_slots.cpp tests/avr_instruction.cpp tests/bruteforce.cpp tests/test.cpp
 TESTS=$(TESTSOURCES:.cpp=.test)
@@ -12,22 +13,21 @@ CC=g++-4.9
 all:
 	make -j omega buildtest
 
-omega: $(SOURCES) $(GENERATEDSOURCES) $(MAINSOURCE)
+omega: $(SOURCES) $(GENERATEDSOURCES) $(MAINSOURCE) $(SOURCES_HPP)
 	$(CC) $(CFLAGS) $(SOURCES) $(MAINSOURCE) -o omega
 
 %_gen.hpp: %.yml src/generate.py
 	python src/generate.py $< $@
 
-test:
-	make buildtest
-	cd tests && time ./test
+test: buildtest
+	cd tests && for BIN in ${TESTS}; do ../$$BIN; done
 
 buildtest: tests/canonical_speed $(TESTS)
 
-tests/canonical_speed: tests/canonical_speed.cpp $(SOURCES) Makefile
+tests/canonical_speed: tests/canonical_speed.cpp $(SOURCES) Makefile $(SOURCES_HPP)
 	$(CC) $(CFLAGS) tests/canonical_speed.cpp $(SOURCES) -o tests/canonical_speed -I src
 
-%.test: %.cpp Makefile
+%.test: %.cpp Makefile $(SOURCES_HPP)
 	$(CC) $(CFLAGS) $< $(SOURCES) -o $@ -I src -lboost_unit_test_framework -O0
 
 clean:
