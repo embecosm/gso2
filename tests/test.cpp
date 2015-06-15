@@ -52,7 +52,7 @@ public:
         TestMachine *mach = static_cast<TestMachine*>(_mach);
         uint32_t sum = 0;
 
-        for(int i = 0; i < sum_slots; ++i)
+        for(unsigned i = 0; i < sum_slots; ++i)
         {
             uint32_t reg = mach->regs[slots[i]->getValue()];
 

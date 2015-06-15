@@ -53,7 +53,6 @@ int main(int argc, char *argv[])
             slots.insert(slots.end(), s1.begin(), s1.end());
         }
 
-        int n = 0;
         for(auto slot: slots)
         {
             auto va = static_cast<RegisterSlot*>(slot)->getValidArguments();
@@ -93,45 +92,6 @@ int main(int argc, char *argv[])
         } while(c_iter.next());
 
     } while(bruteforceIterate(insn_factories, current_factories));
-
-
-    // vector<Slot*> slots;
-
-    // for(auto insn: insns)
-    // {
-    //     auto s1 = insn->getSlots();
-    //     slots.insert(slots.end(), s1.begin(), s1.end());
-    // }
-
-    // int n = 0;
-    // for(auto slot: slots)
-    // {
-    //     auto va = static_cast<RegisterSlot*>(slot)->getValidArguments();
-
-    //     cout << *va.begin() << endl;
-    //     slot->setValue(*min_element(va.begin(), va.end()));
-    // }
-
-    // auto canonical_skips = initialiseCanonical(slots);
-
-    // do
-    // {
-    //     for(int i = 0; i < 32; ++i)
-    //         mach.setRegisterValue(i, i+1);
-
-    //     auto current_slot = &slots[0];
-
-    //     for(auto insn: insns)
-    //     {
-    //         cout << insn->toString(current_slot) << endl;
-
-    //         auto n = insn->execute(&mach, current_slot);
-    //         current_slot += n;
-    //     }
-    //     cout << endl;
-    // } while(nextCanonical(slots, canonical_skips));
-
-    // cout << mach.toString();
 
     return 0;
 }

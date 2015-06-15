@@ -70,7 +70,7 @@ bool testEquivalenceMultiple(std::vector<Instruction *> insns,
     std::vector<Slot *> slots, std::vector<Instruction *> reference_insns,
     std::vector<Slot *> reference_slots, unsigned number=100)
 {
-    for(int i = 0; i < number; ++i)
+    for(unsigned i = 0; i < number; ++i)
     {
         if(!testEquivalence<Machine>(insns, slots, reference_insns, reference_slots))
             return false;
@@ -84,7 +84,7 @@ bool testEquivalenceMultiple(std::vector<Instruction *> insns,
     std::vector<Slot *> slots, std::function<void(Machine&)> transform,
     unsigned number=100)
 {
-    for(int i = 0; i < number; ++i)
+    for(unsigned i = 0; i < number; ++i)
     {
         Machine initial;
         initial.initialiseRandom();
