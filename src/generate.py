@@ -6,6 +6,8 @@ Usage:
 
 from docopt import docopt
 import yaml
+from copy import deepcopy
+import collections
 
 arguments = docopt(__doc__)
 
@@ -84,14 +86,52 @@ factory_lambda_template = """
     factories.push_back([] {{ return new Avr_{insn_name}();}});
 """
 
+# Recursively merge dictionaries, giving priority to params. If a list
+# is encountered, we expect that there will be one entry, and that will
+# provide default values for every item in that list.
+def apply_defaults(params, defaults):
+    try:
+        if params is None:
+            params = defaults
+        if type(params) in [str, unicode, int, long, float]:
+            pass
+        elif isinstance(params, list):
+            # If there is a default entry, the list must be length one
+            # and then we apply those defaults to the parameters
+            if isinstance(defaults, list):
+                if len(defaults) > 1:
+                    raise ValueError("More than one defaults in list")
+                for item in params:
+                    apply_defaults(item, defaults[0])
+            else:
+                pass
+        elif isinstance(params, dict):
+            if isinstance(defaults, dict):
+                for key in defaults:
+                    if key in params:
+                        params[key] = apply_defaults(params[key], defaults[key])
+                    else:
+                        params[key] = defaults[key]
+            else:
+                raise ValueError("Params dictionary met with non-dictionary default: {}, {}".format(params, defaults))
+        else:
+            raise RuntimeException("Unable to apply defaults to {} (from {})".format(params, defaults))
+    except TypeError, e:
+        raise TypeError("TypeError: Unable to apply defaults to {} (from {})".format(params, defaults))
+    return params
+
 with open(arguments["INPUTFILE"]) as f:
     obj = yaml.load(f)
 
 with open(arguments["OUTPUTFILE"], "w") as fout:
     factories = []
-    for insn_name, params in obj.items():
+    for insn_name, params_ in obj["instructions"].items():
+        defaults = deepcopy(obj["defaults"])
+        params = apply_defaults(params_, defaults)
+
         code = params['implementation']
         operands = params['operands']
+        print operands
 
         print_name = params['print_name']
         reg_read = ""

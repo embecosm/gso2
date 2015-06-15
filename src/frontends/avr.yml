@@ -1,71 +1,64 @@
-add:
+defaults:
   operands:
-    - modifier: "rw"
+    - type: "RegisterSlot"
+      modifier: "rw"
       class: "ALL_REGISTERS"
-    - modifier: "r"
-      class: "ALL_REGISTERS"
-  implementation: |
-    rA = rA + rB;
-  print_name: "add"
-sub:
-  operands:
-    - modifier: "rw"
-      class: "ALL_REGISTERS"
-    - modifier: "r"
-      class: "ALL_REGISTERS"
-  implementation: |
-    rA = rA - rB;
-  print_name: "sub"
-eor:
-  operands:
-    - modifier: "rw"
-      class: "ALL_REGISTERS"
-    - modifier: "r"
-      class: "ALL_REGISTERS"
-  implementation: |
-    rA = rA ^ rB;
-  print_name: "eor"
-and:
-  operands:
-    - modifier: "rw"
-      class: "ALL_REGISTERS"
-    - modifier: "r"
-      class: "ALL_REGISTERS"
-  implementation: |
-    rA = rA & rB;
-  print_name: "and"
-mul:
-  operands:
-    - modifier: "r"
-      class: "ALL_REGISTERS"
-    - modifier: "r"
-      class: "ALL_REGISTERS"
-    - modifier: "w"
-      class: "REGISTER0"
-    - modifier: "w"
-      class: "REGISTER1"
-  implementation: |
-    rC = (rA * rB) & 0xFF;
-    rD = (rA * rB) >> 8;
-  print_name: "mul"
-inc:
-  operands:
-    - modifier: "rw"
-      class: "ALL_REGISTERS"
-  implementation: |
-    rA = rA + 1;
-  print_name: "inc"
-dec:
-  operands:
-    - modifier: "rw"
-      class: "ALL_REGISTERS"
-  implementation: |
-    rA = rA - 1;
-  print_name: "dec"
-swap:
-  operands:
-    - modifier: "rw"
-      class: "ALL_REGISTERS"
-  implementation: |
-    rA = (rA >> 4) | ((rA << 4) & 0xFF);
-  print_name: "swap"
+instructions:
+  add:
+    operands:
+      - modifier: "rw"
+      - modifier: "r"
+    implementation: |
+      rA = rA + rB;
+    print_name: "add"
+  sub:
+    operands:
+      - modifier: "rw"
+      - modifier: "r"
+    implementation: |
+      rA = rA - rB;
+    print_name: "sub"
+  eor:
+    operands:
+      - modifier: "rw"
+      - modifier: "r"
+    implementation: |
+      rA = rA ^ rB;
+    print_name: "eor"
+  and:
+    operands:
+      - modifier: "rw"
+      - modifier: "r"
+    implementation: |
+      rA = rA & rB;
+    print_name: "and"
+  mul:
+    operands:
+      - modifier: "r"
+      - modifier: "r"
+      - modifier: "w"
+        class: "REGISTER0"
+      - modifier: "w"
+        class: "REGISTER1"
+    implementation: |
+      rC = (rA * rB) & 0xFF;
+      rD = (rA * rB) >> 8;
+    print_name: "mul"
+  inc:
+    operands:
+      - modifier: "rw"
+    implementation: |
+      rA = rA + 1;
+    print_name: "inc"
+  dec:
+    operands:
+      - modifier: "rw"
+    implementation: |
+      rA = rA - 1;
+    print_name: "dec"
+  swap:
+    operands:
+      - modifier: "rw"
+    implementation: |
+      rA = (rA >> 4) | ((rA << 4) & 0xFF);
+    print_name: "swap"
