@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "algorithms/bruteforce.hpp"
+#include "algorithms/canonical.hpp"
 
 using namespace std;
 
@@ -144,5 +145,72 @@ BOOST_AUTO_TEST_CASE( custom_tests )
         } while(bruteforceIterate(values, indices));
 
         BOOST_REQUIRE(count == 2*3*4*1);
+    }
+}
+
+BOOST_AUTO_TEST_CASE( next_tests )
+{
+    {
+        vector<vector<Slot*>> multi_slots = {{new RegisterSlot(), new RegisterSlot()},
+            {new RegisterSlot(), new RegisterSlot()}};
+
+        vector<canonicalIteratorBasic> c_iters = {canonicalIteratorBasic(multi_slots[0]),
+            canonicalIteratorBasic(multi_slots[1])};
+
+        for(auto slots: multi_slots)
+            for(auto slot: slots)
+                slot->reset();
+
+        BOOST_REQUIRE(multi_slots[0][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[0][1]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[1][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[1][1]->getValue() == 0);
+
+        bruteforceIterate(c_iters);
+        BOOST_REQUIRE(multi_slots[0][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[0][1]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[1][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[1][1]->getValue() == 1);
+
+        bruteforceIterate(c_iters);
+        BOOST_REQUIRE(multi_slots[0][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[0][1]->getValue() == 1);
+        BOOST_REQUIRE(multi_slots[1][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[1][1]->getValue() == 0);
+
+        bruteforceIterate(c_iters);
+        BOOST_REQUIRE(multi_slots[0][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[0][1]->getValue() == 1);
+        BOOST_REQUIRE(multi_slots[1][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[1][1]->getValue() == 1);
+        bruteforceIterate(c_iters);
+
+        BOOST_REQUIRE(multi_slots[0][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[0][1]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[1][0]->getValue() == 0);
+        BOOST_REQUIRE(multi_slots[1][1]->getValue() == 0);
+    }
+
+    {
+        vector<vector<Slot*>> multi_slots = {
+            {new RegisterSlot(), new RegisterSlot(), new RegisterSlot()},
+            {new RegisterSlot(), new RegisterSlot(), new RegisterSlot()},
+            {new RegisterSlot(), new RegisterSlot(), new RegisterSlot()}
+            };
+
+        vector<canonicalIteratorBasic> c_iters = {canonicalIteratorBasic(multi_slots[0]),
+            canonicalIteratorBasic(multi_slots[1]), canonicalIteratorBasic(multi_slots[2])};
+
+        for(auto slots: multi_slots)
+            for(auto slot: slots)
+                slot->reset();
+
+        unsigned count = 0;
+
+        do {
+            count++;
+        } while(bruteforceIterate(c_iters));
+
+        BOOST_REQUIRE(count == 5*5*5);
     }
 }

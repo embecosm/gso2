@@ -17,6 +17,11 @@ public:
         value = val;
     }
 
+    virtual void reset()
+    {
+
+    }
+
 protected:
     unsigned value;
 };
@@ -43,6 +48,12 @@ public:
     {
         validArguments = validArguments_;
         std::sort(validArguments.begin(), validArguments.end());
+    }
+
+    virtual void reset()
+    {
+        if(validArguments.size() > 0)
+            setValue(validArguments[0]);
     }
 
 private:
