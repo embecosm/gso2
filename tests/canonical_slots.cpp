@@ -419,3 +419,63 @@ BOOST_AUTO_TEST_CASE( overspecified_tests )
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
     }
 }
+
+// Test the skipping of slots which are not register slots
+BOOST_AUTO_TEST_CASE( slot_tests )
+{
+    {   // Three slots, too manyvalues
+        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new Slot(), new RegisterSlot(), new Slot()};
+
+        ((RegisterSlot*)slots[0])->setValidArguments({0,1,2});
+        ((RegisterSlot*)slots[1])->setValidArguments({0,1,2});
+        ((RegisterSlot*)slots[3])->setValidArguments({0,1,2});
+
+        slots[0]->setValue(0);
+        slots[1]->setValue(0);
+        slots[3]->setValue(0);
+
+        canonicalIterator c_iter(slots);
+
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,1,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,0,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,1,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,2,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0,0}));
+    }
+
+    {   // Three slots, too manyvalues
+        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new Slot(), new RegisterSlot(), new Slot()};
+
+        ((RegisterSlot*)slots[0])->setValidArguments({0,1,2});
+        ((RegisterSlot*)slots[1])->setValidArguments({0,1,2});
+        ((RegisterSlot*)slots[3])->setValidArguments({0,1,2});
+
+        slots[0]->setValue(0);
+        slots[1]->setValue(0);
+        slots[2]->setValue(0);
+        slots[3]->setValue(0);
+        slots[4]->setValue(0);
+
+        canonicalIteratorBasic c_iter(slots);
+
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,1,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,0,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,1,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,2,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0,0}));
+    }
+}
