@@ -63,4 +63,18 @@ bool bruteforceIterate(std::vector<Iterator> &iterators)
     return false;
 }
 
+template <typename Iterator>
+bool bruteforceIterate(std::vector<Iterator*> &iterators)
+{
+    for(int i = iterators.size()-1; i >= 0; --i)
+    {
+        if(iterators[i]->next())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 #endif
