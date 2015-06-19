@@ -202,6 +202,16 @@ const char* processToNextMarker(Stream& strm, const char* str)
 
 } // namespace iof_private
 
+unsigned countMarkers(const char* fmt)
+{
+    unsigned count = 0;
+    std::ostringstream ss;
+
+    while((fmt = iof_private::processToNextMarker(ss, fmt)))
+        count++;
+
+    return count;
+}
 
 } // namespace iof
 

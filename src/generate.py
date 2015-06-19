@@ -42,7 +42,7 @@ public:
         std::string output;
         iof::stringizer ss("{format}");
 
-        for(int i = 0; i < {n_slots}; ++i)
+        for(unsigned i = 0; i < iof::countMarkers("{format}"); ++i)
         {{
             ss << "S" + std::to_string(i+1);
         }}
@@ -55,7 +55,7 @@ public:
         std::string output;
         iof::stringizer ss("{format}");
 
-        for(unsigned i = 0; i < {n_slots}; ++i)
+        for(unsigned i = 0; i < iof::countMarkers("{format}"); ++i)
         {{
             ss << slots[i]->getValue();
         }}
