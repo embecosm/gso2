@@ -11,7 +11,7 @@ public:
 
     bool next();
 private:
-    const std::vector<Slot*> &slotlist;
+    std::vector<Slot*> slotlist;
     std::vector<std::vector<unsigned>> skips;
 };
 
@@ -22,7 +22,7 @@ public:
 
     bool next();
 private:
-    const std::vector<Slot*> &slotlist;
+    std::vector<Slot*> slotlist;
     std::vector<std::vector<unsigned>> skips;
 };
 

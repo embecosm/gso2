@@ -7,9 +7,14 @@
 
 using namespace std;
 
-canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_) :
-    slotlist(slotlist_)
+canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
 {
+    for(auto slot: slotlist_)
+    {
+        if(dynamic_cast<RegisterSlot*>(slot) != 0)
+            slotlist.push_back(slot);
+    }
+
     for(unsigned i = 0; i < slotlist.size(); ++i)
     {
         if(i == 0)
@@ -111,9 +116,14 @@ bool canonicalIterator::next()
     return false;
 }
 
-canonicalIteratorBasic::canonicalIteratorBasic(vector<Slot*> &slotlist_) :
-    slotlist(slotlist_)
-{}
+canonicalIteratorBasic::canonicalIteratorBasic(vector<Slot*> &slotlist_)
+{
+    for(auto slot: slotlist_)
+    {
+        if(dynamic_cast<RegisterSlot*>(slot) != 0)
+            slotlist.push_back(slot);
+    }
+}
 
 bool canonicalIteratorBasic::next()
 {

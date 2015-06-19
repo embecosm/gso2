@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <assert.h>
 
 class Slot
 {
@@ -15,6 +16,11 @@ public:
     virtual void setValue(unsigned val)
     {
         value = val;
+    }
+
+    virtual void reset()
+    {
+
     }
 
 protected:
@@ -45,6 +51,12 @@ public:
         std::sort(validArguments.begin(), validArguments.end());
     }
 
+    virtual void reset()
+    {
+        if(validArguments.size() > 0)
+            setValue(validArguments[0]);
+    }
+
 private:
     bool read, write;
 
@@ -54,7 +66,53 @@ private:
 
 class ConstantSlot : public Slot
 {
+public:
+    // TODO: validate that the ranges are strictly ordered, i.e., they are in
+    //  order and non-overlapping
+    ConstantSlot(std::vector<std::pair<unsigned, unsigned>> ranges_)
+    {
+        ranges = ranges_;
+        current_range = 0;
+    }
 
+    virtual void reset()
+    {
+        if(ranges.size() > 0)
+        {
+            value = ranges[0].first;
+            current_range = 0;
+        }
+    }
+
+    bool next()
+    {
+        assert(ranges.size() > 0);
+        if(value >= ranges[current_range].second)
+        {
+            current_range++;
+            if(current_range >= ranges.size())
+            {
+                current_range = 0;
+                value = ranges[current_range].first;
+                return false;
+            }
+            else
+            {
+                value = ranges[current_range].first;
+                return true;
+            }
+        }
+        else
+        {
+            value++;
+            return true;
+        }
+    }
+
+private:
+    // Ranges are inclusive
+    std::vector<std::pair<unsigned, unsigned>> ranges;
+    unsigned current_range;
 };
 
 #endif
