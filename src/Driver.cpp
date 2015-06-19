@@ -14,13 +14,15 @@ int main()
 
   AAP::init(target_info);
 
-  InstrSequence instr_seq(target_info, 2, 1);
-  instr_seq.dump(std::cout);
+  InstrSequence instr_seq(target_info, 5, 1);
+
+  uint64_t a = 0;
 
   bool wrap = false;
   while (!wrap) {
     wrap = instr_seq.nextInstrSequence(target_info);
-    instr_seq.dump(std::cout);
+    a++;
   }
+  std::cout << a << std::endl;
 }
 

@@ -140,14 +140,17 @@ nextBranch(Operand& op,
   int64_t branch = op.getBranch();
 
   int64_t max_branch = branch_class.getMax();
-  int64_t branch_rem = seq_len - seq_index;
-  max_branch = std::min(branch_rem, max_branch);
+  int64_t min_branch = branch_class.getMin();
+
+  // for now we cannot do backwards branches, so minimum is zero
+  min_branch = std::max<int64_t>(0, min_branch);
+  max_branch = std::min<int64_t>(seq_len - seq_index - 1, max_branch);
 
   bool wrap = false;
   branch += branch_class.getStep();
   if (branch > max_branch) {
-    branch = branch_class.getMin();
-    assert(branch >= 0);
+    branch = min_branch;
+    assert(branch >= 0 && "Backwards branches not yet supported!");
     wrap = true;
   }
 
@@ -305,7 +308,9 @@ setInstruction(const TargetInfo& target_info, Opcode opcode, RegMask reg_mask)
       const BranchClass& branch_class = op_class.getBranchClass();
 
       // FIXME: validate branch distance is okay?
+      // For now we cannot branch backwards, so minimum is 0
       int64_t branch = branch_class.getMin();
+      branch = std::max<int64_t>(0, branch);
       op.setBranch(branch);
       break;
     }

@@ -44,6 +44,7 @@ public:
   const OperandClass&
   getOperandClass(OperandClassID index) const { return m_op_classes[index]; }
 
+  unsigned regCount() const { return m_regs.size(); }
   unsigned instrCount() const { return m_instrs.size(); }
 
 private:

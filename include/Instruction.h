@@ -14,6 +14,11 @@ namespace SuperOpt {
 
 class OperandClass;
 class TargetInfo;
+class Instruction;
+class IMachineState;
+
+
+typedef void (*ExecuteFn)(const Instruction&, IMachineState*);
 
 
 class InstrDesc {
@@ -28,6 +33,12 @@ public:
   unsigned outputCount() const { return m_n_outputs; }
   unsigned operandCount() const { return m_operands.size(); }
 
+  void setExecuteFn(ExecuteFn execute_fn) {
+    assert(execute_fn != nullptr);
+    m_execute_fn = execute_fn;
+  }
+  ExecuteFn getExecuteFn() const { return m_execute_fn; }
+
   const OperandClass& getOperandClass(const unsigned op_num) const;
 
   void dump(std::ostream& out) const;
@@ -35,6 +46,8 @@ public:
 private:
   unsigned m_n_outputs;
   std::vector<const OperandClass*> m_operands;
+
+  ExecuteFn m_execute_fn;
 };
 
 

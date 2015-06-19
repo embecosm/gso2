@@ -58,6 +58,10 @@ private:
 
 // use uint64_t or subclass ImmediateClass?
 class BranchClass : public ImmediateClass {
+public:
+  BranchClass(int64_t min, int64_t max, int64_t step = 1)
+    : ImmediateClass(min, max, step)
+  {}
 };
 
 
