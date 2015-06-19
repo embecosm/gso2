@@ -19,7 +19,8 @@ int main(int argc, char *argv[])
 
     function<void(AvrMachine&)> goal(
         [](AvrMachine &mach){
-            mach.setRegisterValue(0, mach.getRegisterValue(0)*4+3);
+            // mach.setRegisterValue(1, (mach.getRegisterValue(1)+37)&0xFF);
+            mach.setRegisterValue(0, 0x10);
         }
     );
 
@@ -46,6 +47,7 @@ int main(int argc, char *argv[])
             insns.push_back((*factory)());
 
         vector<Slot*> slots;
+        vector<ConstantSlot*> constant_slots;
 
         for(auto insn: insns)
         {
@@ -58,38 +60,43 @@ int main(int argc, char *argv[])
             auto va = static_cast<RegisterSlot*>(slot)->getValidArguments();
 
             slot->setValue(*min_element(va.begin(), va.end()));
+            if(dynamic_cast<ConstantSlot*>(slot) != 0)
+            {
+                constant_slots.push_back((ConstantSlot*)slot);
+            }
         }
 
         canonicalIterator c_iter(slots);
 
         do
         {
-            mach = mach_initial;
-
-            if(testEquivalence(insns, slots, mach_initial, mach_expected))
+            do
             {
-                AvrMachine mach_test;
+                mach = mach_initial;
 
-                bool correct = testEquivalenceMultiple(insns, slots, goal);
-
-                if(correct)
+                if(testEquivalence(insns, slots, mach_initial, mach_expected))
                 {
-                    cout << "Found" << endl;
-                    auto current_slot = &slots[0];
+                    AvrMachine mach_test;
 
-                    for(auto insn: insns)
+                    bool correct = testEquivalenceMultiple(insns, slots, goal);
+
+                    if(correct)
                     {
-                        cout << "    " << insn->toString(current_slot) << endl;
+                        cout << "Found" << endl;
+                        auto current_slot = &slots[0];
 
-                        auto n = insn->execute(&mach, current_slot);
-                        current_slot += n;
+                        for(auto insn: insns)
+                        {
+                            cout << "    " << insn->toString(current_slot) << endl;
+
+                            auto n = insn->execute(&mach, current_slot);
+                            current_slot += n;
+                        }
+                        // return 0;
                     }
-                    cout << endl;
-                    // return 0;
                 }
-            }
-            // break;
-        } while(c_iter.next());
+            } while(c_iter.next());
+        } while(bruteforceIterate(constant_slots));
 
     } while(bruteforceIterate(insn_factories, current_factories));
 

@@ -5,7 +5,7 @@ MAINSOURCE=src/main.cpp
 TESTSOURCES=tests/canonical_slots.cpp tests/avr_instruction.cpp tests/bruteforce.cpp tests/test.cpp tests/slots.cpp
 TESTS=$(TESTSOURCES:.cpp=.test)
 GENERATEDSOURCES=src/frontends/avr_gen.hpp
-CFLAGS= -std=c++11 -Wall -g -O3
+CFLAGS= -std=c++11 -Wall -g -O3 -I libraries
 CC=g++-4.9
 
 .PHONY=test all

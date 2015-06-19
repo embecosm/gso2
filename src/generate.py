@@ -39,28 +39,28 @@ public:
 
     std::string toString()
     {{
-        std::string s = "{print_name} ";
+        std::string output;
+        iof::stringizer ss("{format}");
 
         for(int i = 0; i < {n_slots}; ++i)
         {{
-            s += "S" + std::to_string(i+1);
-            if(i != {n_slots}-1)
-                s += ", ";
+            ss << "S" + std::to_string(i+1);
         }}
-        return s;
+
+        return ss;
     }}
 
     std::string toString(Slot** slots)
     {{
-        std::string s = "{print_name} ";
+        std::string output;
+        iof::stringizer ss("{format}");
 
-        for(int i = 0; i < {n_slots}; ++i)
+        for(unsigned i = 0; i < {n_slots}; ++i)
         {{
-            s += "r" + std::to_string(slots[i]->getValue());
-            if(i != {n_slots}-1)
-                s += ", ";
+            ss << slots[i]->getValue();
         }}
-        return s;
+
+        return ss;
     }}
 
     std::string getName()
@@ -131,25 +131,34 @@ with open(arguments["OUTPUTFILE"], "w") as fout:
 
         code = params['implementation']
         operands = params['operands']
-        print operands
+        format = params['format']
 
         print_name = params['print_name']
         reg_read = ""
         reg_write = ""
         slots = []
         for i, op in enumerate(operands):
-            if "r" in op["modifier"]:
-                reg_read += "unsigned char r{} = mach->getRegister(slots[{}]);\n".format(chr(65+i), i)
-            else:
-                reg_read += "unsigned char r{} = 0;\n".format(chr(65+i))
+            if op["type"] == "RegisterSlot":
+                if "r" in op["modifier"]:
+                    reg_read += "unsigned char r{} = mach->getRegister(slots[{}]);\n".format(chr(65+i), i)
+                else:
+                    reg_read += "unsigned char r{} = 0;\n".format(chr(65+i))
 
-            if "w" in op["modifier"]:
-                reg_write += "mach->setRegister(slots[{}], r{});\n".format(i, chr(65+i))
+                if "w" in op["modifier"]:
+                    reg_write += "mach->setRegister(slots[{}], r{});\n".format(i, chr(65+i))
 
-            slots.append("new AVRRegisterSlot(AvrRegisterClasses::{}, {}, {})".format(
-                op["class"],
-                "true" if "w" in op["modifier"] else "false",
-                "true" if "r" in op["modifier"] else "false"))
+                slots.append("new AVRRegisterSlot(AvrRegisterClasses::{}, {}, {})".format(
+                    op["class"],
+                    "true" if "w" in op["modifier"] else "false",
+                    "true" if "r" in op["modifier"] else "false"))
+            elif op["type"] == "ConstantSlot":
+                ranges = []
+                for r in op["ranges"]:
+                    ranges.append("{{{}, {}}}".format(r["lower"], r["upper"]))
+
+                reg_read += "unsigned char c{} = slots[{}]->getValue();\n".format(chr(65+i), i)
+                slots.append("new ConstantSlot({{{}}})".format(", ".join(ranges)))
+
         slots = ", ".join(slots)
         n_slots = len(operands)
 

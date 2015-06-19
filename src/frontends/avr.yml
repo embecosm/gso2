@@ -11,6 +11,7 @@ instructions:
     implementation: |
       rA = rA + rB;
     print_name: "add"
+    format: "add r%s, r%s"
   sub:
     operands:
       - modifier: "rw"
@@ -18,6 +19,7 @@ instructions:
     implementation: |
       rA = rA - rB;
     print_name: "sub"
+    format: "sub r%s, r%s"
   eor:
     operands:
       - modifier: "rw"
@@ -25,6 +27,7 @@ instructions:
     implementation: |
       rA = rA ^ rB;
     print_name: "eor"
+    format: "eor r%s, r%s"
   and:
     operands:
       - modifier: "rw"
@@ -32,6 +35,7 @@ instructions:
     implementation: |
       rA = rA & rB;
     print_name: "and"
+    format: "and r%s, r%s"
   mul:
     operands:
       - modifier: "r"
@@ -44,21 +48,37 @@ instructions:
       rC = (rA * rB) & 0xFF;
       rD = (rA * rB) >> 8;
     print_name: "mul"
+    format: "mul r%s, r%s"
   inc:
     operands:
       - modifier: "rw"
     implementation: |
       rA = rA + 1;
     print_name: "inc"
+    format: "inc r%s"
   dec:
     operands:
       - modifier: "rw"
     implementation: |
       rA = rA - 1;
     print_name: "dec"
+    format: "dec r%s"
   swap:
     operands:
       - modifier: "rw"
     implementation: |
       rA = (rA >> 4) | ((rA << 4) & 0xFF);
     print_name: "swap"
+    format: "swap r%s"
+  ldi:
+    operands:
+      - type: "RegisterSlot"
+        modifier: "w"
+      - type: "ConstantSlot"
+        ranges:
+          - lower: 0
+            upper: 255
+    implementation: |
+      rA = cB;
+    print_name: "ldi"
+    format: "ldi r%s, %s"

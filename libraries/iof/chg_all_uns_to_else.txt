@@ -1,0 +1,13 @@
+>  globalSubs -fhpp '\([^_a-zA-Z0-9]\)\(_[a-zA-Z][a-zA-Z]*\)' '\1my\2' .
+
+FILE EXTS: Will search for files ending in: hpp
+Finding files that contain '\([^_a-zA-Z0-9]\)\(_[a-zA-Z][a-zA-Z]*\)' in  .
+Search for files: *.hpp
+-------------------------------
+sub'ing in ./iof/fmtr.hpp...
+    fmtr(): my_fmt("") {}
+    explicit fmtr(const std::string& fmt): my_fmt(fmt) {}
+    const std::string& fmt() const {return my_fmt;}
+    const std::string my_fmt;
+=======================================================
+
