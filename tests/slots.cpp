@@ -39,8 +39,6 @@ BOOST_AUTO_TEST_CASE( bruteforce_slot_tests )
         values[0].reset();
         values[1].reset();
 
-        unsigned count = 0;
-
         BOOST_REQUIRE(values[0].getValue() == 0);
         BOOST_REQUIRE(values[1].getValue() == 0);
 
