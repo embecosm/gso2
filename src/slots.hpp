@@ -8,7 +8,7 @@
 class Slot
 {
 public:
-    virtual unsigned getValue()
+    virtual unsigned getValue() const
     {
         return value;
     }
@@ -23,8 +23,23 @@ public:
 
     }
 
+    friend std::ostream &operator<<(std::ostream &os, const Slot &d)
+    {
+        return os << d.toString();
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Slot *d)
+    {
+        return os << d->toString();
+    }
+
 protected:
     unsigned value;
+
+    virtual std::string toString() const
+    {
+        return std::to_string(getValue());
+    }
 };
 
 
@@ -61,6 +76,12 @@ private:
     bool read, write;
 
     std::vector<unsigned> validArguments;
+
+protected:
+    virtual std::string toString() const
+    {
+        return "r" + std::to_string(getValue());
+    }
 };
 
 

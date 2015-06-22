@@ -57,7 +57,7 @@ public:
 
         for(unsigned i = 0; i < iof::countMarkers("{format}"); ++i)
         {{
-            ss << slots[i]->getValue();
+            ss << slots[i];
         }}
 
         return ss;
