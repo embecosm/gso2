@@ -15,7 +15,7 @@ template = """
 class Avr_{insn_name} : public Instruction
 {{
 public:
-    unsigned execute(TargetMachine *_mach, Slot** slots)
+    unsigned execute(TargetMachineBase *_mach, Slot** slots)
     {{
         // TODO assert enough slots
         // TODO assert slot types are RegisterSlots

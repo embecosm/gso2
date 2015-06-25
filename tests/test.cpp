@@ -5,36 +5,35 @@
 #include <vector>
 #include <iostream>
 
+#include "frontend.hpp"
 #include "algorithms/test.hpp"
 
 using namespace std;
 
-class TestMachine : public TargetMachine
+class TestMachine : public TargetMachine<uint32_t, 4>
 {
 public:
     TestMachine(vector<uint32_t> regs_={0,0,0,0})
     {
         for(int i = 0; i < 4; ++i)
-            regs[i] = regs_[i];
+            registers[i] = regs_[i];
     }
 
     void initialiseRandom()
     {
         for(int i = 0; i < 4; ++i)
-            regs[i] = rand();
+            registers[i] = rand();
     }
 
     bool operator== (TestMachine &rhs)
     {
         for(int i = 0; i < 4; ++i)
         {
-            if(regs[i] != rhs.regs[i])
+            if(registers[i] != rhs.registers[i])
                 return false;
         }
         return true;
     }
-
-    uint32_t regs[4];
 };
 
 class TestInstruction: public Instruction
@@ -47,21 +46,21 @@ public:
         BOOST_REQUIRE(sum_slots > 0);
     }
 
-    virtual unsigned execute(TargetMachine *_mach, Slot **slots)
+    virtual unsigned execute(TargetMachineBase *_mach, Slot **slots)
     {
         TestMachine *mach = static_cast<TestMachine*>(_mach);
         uint32_t sum = 0;
 
         for(unsigned i = 0; i < sum_slots; ++i)
         {
-            uint32_t reg = mach->regs[slots[i]->getValue()];
+            uint32_t reg = mach->getRegister(slots[i]);
 
             sum += reg;
         }
 
         sum += add_extra;
 
-        mach->regs[slots[0]->getValue()] = sum;
+        mach->setRegister(slots[0], sum);
 
         return sum_slots;
     }
