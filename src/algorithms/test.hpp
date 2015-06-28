@@ -21,7 +21,7 @@ bool testEquivalence(std::vector<Instruction *> insns, std::vector<Slot *> slots
         current_slot += n;
     }
 
-    return test_state == expected;
+    return test_state.containsState(expected);
 }
 
 template <typename Machine>
@@ -62,7 +62,7 @@ bool testEquivalence(std::vector<Instruction *> insns, std::vector<Slot *> slots
         current_slot += n;
     }
 
-    return test_state == reference_state;
+    return test_state.containsState(reference_state);
 }
 
 template <typename Machine>

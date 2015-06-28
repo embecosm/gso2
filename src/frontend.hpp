@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "slots.hpp"
+#include "utility.hpp"
 
 class Slot;
 class TargetMachineBase;
@@ -70,13 +71,74 @@ public:
         registers[reg] = value;
     }
 
-    // virtual ~TargetMachine();
+    // Test whether the other state is the same. This is not commutative, since
+    // it only checks the registers which have been written in this machine state
+    bool equivalentState(TargetMachine &other)
+    {
+        bool equiv = true;
 
+        for(unsigned i = 0; i < NumberOfRegisters; ++i)
+            if(register_written[i] && registers[i] != other.registers[i])
+                equiv = false;
 
-    // virtual void setBackend(Backend *backend);
+        return equiv;
+    }
 
-// protected:
-    Backend *backend;
+    // Checks whether the other state is contained within the current state,
+    // by getting working out whether there is a register mapping from this
+    // state to the other. This works, even if additional register have been
+    // written to in this state, and even if the register labels are not the
+    // same.
+    bool containsState(TargetMachine &other)
+    {
+        RegisterType reg_map[NumberOfRegisters];
+        RegisterType reg_map_other[NumberOfRegisters];
+        unsigned n_reg=0, n_reg_other=0;
+        bool equiv;
+
+        // Fill in the array with the registers that are written
+        for(unsigned i = 0; i < NumberOfRegisters; ++i)
+        {
+            if(register_written[i])
+            {
+                reg_map[n_reg++] = i;
+            }
+            if(other.register_written[i])
+            {
+                reg_map_other[n_reg_other++] = i;
+            }
+        }
+
+        // If the other state requires more registers than we have, then the
+        // states cannot be equivalent.
+        if(n_reg_other > n_reg || n_reg_other == 0)
+            return false;
+
+        std::vector<unsigned> rm(reg_map, reg_map+n_reg);
+        Combinations<unsigned> comb_iter(rm, n_reg_other);
+
+        do
+        {
+            auto reg_list = comb_iter.getSelection();
+
+            do
+            {
+                equiv = true;
+                for(unsigned i = 0; i < n_reg_other; ++i)
+                {
+                    if(registers[reg_map[reg_list[i]]] != other.registers[reg_map_other[i]])
+                        equiv = false;
+                }
+                if(equiv)
+                    break;
+            } while(std::next_permutation(reg_list.begin(), reg_list.end()));
+            if(equiv)
+                break;
+        } while(comb_iter.next());
+
+        return equiv;
+    }
+
 
 protected:
     RegisterType registers[NumberOfRegisters];

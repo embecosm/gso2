@@ -79,6 +79,7 @@ BOOST_AUTO_TEST_CASE( machine_state_tests )
 
         insns.push_back(new TestInstruction(1, 0));
         slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        mach_expected.setRegisterValue(0, 0);
 
         BOOST_REQUIRE(testEquivalence(insns,slots,mach_initial, mach_expected) == true);
     }
@@ -92,6 +93,7 @@ BOOST_AUTO_TEST_CASE( machine_state_tests )
         insns.push_back(new TestInstruction(2, 0));
         slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
         slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 1));
+        mach_expected.setRegisterValue(0, 3);
 
         BOOST_REQUIRE(testEquivalence(insns,slots,mach_initial, mach_expected) == true);
     }
@@ -111,6 +113,8 @@ BOOST_AUTO_TEST_CASE( machine_state_tests )
         slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 1));
         slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 1));
         slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        mach_expected.setRegisterValue(0, 3);
+        mach_expected.setRegisterValue(1, 5);
 
         BOOST_REQUIRE(testEquivalence(insns,slots,mach_initial, mach_expected) == true);
     }
@@ -158,6 +162,34 @@ BOOST_AUTO_TEST_CASE( instruction_sequences_tests )
         // Overall: r0 = r0 * 4
         ref_insns.push_back(new TestInstruction(4, 0));
         ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+
+        BOOST_REQUIRE(testEquivalence<TestMachine>(insns,slots,ref_insns,ref_slots) == true);
+        BOOST_REQUIRE(testEquivalenceMultiple<TestMachine>(insns,slots,ref_insns,ref_slots) == true);
+    }
+
+    {
+        vector<Instruction*> insns;
+        vector<Slot*> slots;
+        vector<Instruction*> ref_insns;
+        vector<Slot*> ref_slots;
+
+        // sum r0, r0
+        // sum r0, r0
+        // Overall: r0 = r0 * 4
+        insns.push_back(new TestInstruction(2, 0));
+        slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        insns.push_back(new TestInstruction(2, 0));
+        slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+
+        // sum r0, r0, r0, r0
+        // Overall: r0 = r0 * 4
+        ref_insns.push_back(new TestInstruction(4, 0));
+        ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 1));
         ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
         ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
         ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
