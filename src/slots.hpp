@@ -5,29 +5,59 @@
 #include <algorithm>
 #include <assert.h>
 
+/*! \class Slot
+
+    The slot class is the basis of all the parameters in the instruction
+    which can be iterated over by a superoptimizer. For example, the class
+    is subclassed to represent registers and constants.
+*/
+
 class Slot
 {
 public:
+    /*! Get the value stored by the slot.
+
+        @return The value stored by the slot.
+    */
     virtual unsigned getValue() const
     {
         return value;
     }
 
+    /*! Set the value stored in the slot.
+
+        @param val  Set the value stored to val.
+    */
     virtual void setValue(unsigned val)
     {
         value = val;
     }
 
+    /*! Reset the value in the slot. This is subclassed, to reset the value,
+        since it doesn't necessarily make sense to reset the value sometimes.
+    */
     virtual void reset()
     {
 
     }
 
+    /*! Stream operator to display the slot's value on the specified stream.
+
+        @param os  The stream to output to.
+        @param d   The slot whose value to output.
+    */
     friend std::ostream &operator<<(std::ostream &os, const Slot &d)
     {
         return os << d.toString();
     }
 
+    /*! Stream operator to display the slot's value on the specified stream.
+        This is mostly a convenience function, since Slots are often refered
+        to via pointers.
+
+        @param os  The stream to output to.
+        @param d   The slot whose value to output.
+    */
     friend std::ostream &operator<<(std::ostream &os, const Slot *d)
     {
         return os << d->toString();
@@ -36,36 +66,74 @@ public:
 protected:
     unsigned value;
 
+    /*! A conversion method, since the friend stream operators cannot be
+        virtual. The method converts the slot's value to a string which
+        can be displayed.
+
+        @return The printable string of the slot's value.
+    */
     virtual std::string toString() const
     {
         return std::to_string(getValue());
     }
 };
 
+/*! \class RegisterSlot
+
+    The RegisterSlot class contains information about a slot which can accept
+    different registers. Information, such as whether the register is read,
+    written, and its valid arguments are stored.
+*/
 
 class RegisterSlot : public Slot
 {
 public:
+    /*! Initialise the RegisterSlot, with information about the class of
+        values that can be stored, and whether the slot is a writable
+        register, readable register or both. The _validArguments parameter
+        should be sorted for the canonical form iterators to work properly.
+
+        @param _write   Specify whether the register slot represents a
+                        register which is written to by an instruction.
+        @param _read    Specify whether the register slot represents
+                        a register which is read by an instruction.
+        @param _validArguments
+                        A list of the possible values the register slot
+                        will accept.
+        @param value    An value to initialise the slot to.
+    */
     RegisterSlot(bool _write=false, bool _read=true,
         std::vector<unsigned> _validArguments={}, unsigned value=0)
     {
         read = _read;
         write = _write;
         validArguments = _validArguments;
+        std::sort(validArguments.begin(), validArguments.end());
         setValue(value);
     }
 
+    /*! Get the list of registers that the slot will accept.
+
+        @return The list of accepted register names.
+    */
     std::vector<unsigned> getValidArguments()
     {
         return validArguments;
     }
 
+    /*! Set the list of acceptable registers for this slot.
+
+        @param validArguments_  The values which this RegisterSlot can take.
+    */
     void setValidArguments(std::vector<unsigned> validArguments_)
     {
         validArguments = validArguments_;
         std::sort(validArguments.begin(), validArguments.end());
     }
 
+    /*! Reset the value of the Slot to the first in the set of valid
+        arguments, if one has been set. Otherwise, do not reset the value.
+    */
     virtual void reset()
     {
         if(validArguments.size() > 0)
@@ -84,6 +152,14 @@ protected:
     }
 };
 
+/*! \class ConstantSlot
+
+    The constant slot holds a constant value that may be given to an instruction. The
+    constant slot accepts a number of ranges, each which describe which constants may
+    be set for the instruction. While most instructions just accept a single range of
+    constants, this allows the number of constants considered to be restricted, since
+    iterating through every possible constant vastly increases the search space.
+*/
 
 class ConstantSlot : public Slot
 {
