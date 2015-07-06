@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <unordered_set>
 
 #include "algorithms/canonical.hpp"
 
@@ -12,7 +13,7 @@ using namespace std;
 
 template class std::vector<Slot*>;
 
-vector<unsigned> getSlotValues(vector<Slot*> slots)
+vector<unsigned> getSlotValues(const vector<Slot*> slots)
 {
     vector<unsigned> values;
 
@@ -86,6 +87,79 @@ void checkTestData(vector<Slot *> slots, string filename)
         c_iter.next();
     }
 }
+
+void checkTestDataUnordered(vector<Slot *> slots, string filename)
+{
+    ifstream infile(filename);
+    string start;
+    unsigned n_tests;
+
+    BOOST_REQUIRE_MESSAGE(getline(infile, start),
+        "Test data file \"" + filename + "\" is corrupt at the start");
+    n_tests = stoi(start);
+
+    canonicalIterator c_iter(slots);
+
+    vector<vector<unsigned>> correct_sequences;
+    vector<vector<unsigned>> computed_sequences;
+
+    for(unsigned i = 0; i < n_tests; ++i)
+    {
+        string line;
+
+        BOOST_REQUIRE_MESSAGE(getline(infile, line),
+            "Test data file \"" + filename + "\" does not have enough entries");
+
+        vector<unsigned> seq;
+        istringstream ss(line);
+
+        for(unsigned j = 0; j < slots.size(); ++j)
+        {
+            string token;
+
+            BOOST_REQUIRE_MESSAGE(getline(ss, token, ','),
+                "Test data file \"" + filename +
+                "\" has incorrect number of entries for test "+to_string(i));
+            seq.push_back(stoi(token));
+        }
+
+        BOOST_REQUIRE_EQUAL(seq.size(), slots.size());
+
+        correct_sequences.push_back(seq);
+    }
+
+    // TODO first is dup
+    do {
+        computed_sequences.push_back(getSlotValues(slots));
+    } while(c_iter.next());
+
+    sort(correct_sequences.begin(), correct_sequences.end());
+    sort(computed_sequences.begin(), computed_sequences.end());
+
+    if(correct_sequences != computed_sequences)
+    {
+        cout << "Correct sequences has " << correct_sequences.size() << " elements\n";
+        cout << "Computed sequences has " << computed_sequences.size() << " elements\n";
+
+        vector<vector<unsigned>> diff;
+        set_symmetric_difference(correct_sequences.begin(), correct_sequences.end(),
+            computed_sequences.begin(), computed_sequences.end(), back_inserter(diff));
+
+        cout << "Differences:\n";
+        for(auto d: diff)
+        {
+            cout << "   ";
+            for(auto v: d)
+                cout << v<< " ";
+            cout << endl;
+        }
+    }
+
+    BOOST_REQUIRE_MESSAGE(correct_sequences == computed_sequences, filename);
+
+}
+
+
 
 void checkTestDataBasic(vector<Slot *> slots, string filename)
 {
@@ -252,9 +326,10 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
         c_iter.next();
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,0}));
         c_iter.next();
-        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,1}));
-        c_iter.next();
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,0}));
+        c_iter.next();
+
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,1}));
         c_iter.next();
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
     }
@@ -286,17 +361,17 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
         c_iter.next();
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,2,0}));
         c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,0,0}));
+        c_iter.next();
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,2,1}));
         c_iter.next();
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,3,0}));
         c_iter.next();
-        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,3,1}));
-        c_iter.next();
-        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,0,0}));
-        c_iter.next();
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,2,0}));
         c_iter.next();
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,2,0,0}));
+        c_iter.next();
+        BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,3,1}));
         c_iter.next();
         BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
     }
@@ -317,7 +392,7 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
                 {0,2,3}}
             );
 
-        checkTestData(slots, "data/sparse_4.csv");
+        checkTestDataUnordered(slots, "data/sparse_4.csv");
     }
 
     { // 11 slots, limited values
@@ -340,7 +415,7 @@ BOOST_AUTO_TEST_CASE( sparse_tests )
                 {0,1}}
             );
 
-        checkTestData(slots, "data/sparse_5.csv");
+        checkTestDataUnordered(slots, "data/sparse_5.csv");
     }
 }
 
@@ -354,6 +429,7 @@ BOOST_AUTO_TEST_CASE( long_tests )
             RegisterSlot *rs = new RegisterSlot();
             rs->setValidArguments({0,1,2,3});
             rs->setValue(0);
+            rs->setRegisterClassID(0);
             slots.push_back(rs);
         }
 
@@ -368,6 +444,7 @@ BOOST_AUTO_TEST_CASE( long_tests )
             RegisterSlot *rs = new RegisterSlot();
             rs->setValidArguments({0,1});
             rs->setValue(0);
+            rs->setRegisterClassID(0);
             slots.push_back(rs);
         }
 
@@ -408,6 +485,56 @@ BOOST_AUTO_TEST_CASE( basic_tests )
             );
 
         checkTestDataBasic(slots, "data/standard_2.csv");
+    }
+}
+
+BOOST_AUTO_TEST_CASE( classid_tests )
+{
+    {   // Four slots, full range of values
+        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot(), new RegisterSlot()};
+
+        ((RegisterSlot*)slots[0])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[1])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[2])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[3])->setRegisterClassID(0);
+
+        setupSlots(slots, {
+                {0,1,2,3},
+                {0,1,2,3},
+                {0,1,2,3},
+                {0,1,2,3}}
+            );
+
+        checkTestData(slots, "data/standard_1.csv");
+    }
+
+    { // Eight slots, full range of values
+        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot(), new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot(), new RegisterSlot(), new RegisterSlot()};
+
+        ((RegisterSlot*)slots[0])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[1])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[2])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[3])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[4])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[5])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[6])->setRegisterClassID(0);
+        ((RegisterSlot*)slots[7])->setRegisterClassID(0);
+
+        setupSlots(slots, {
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8}}
+            );
+
+        checkTestData(slots, "data/standard_2.csv");
     }
 }
 
@@ -499,42 +626,41 @@ BOOST_AUTO_TEST_CASE( slot_tests )
     }
 }
 
-vector<unsigned> possibleRegisters(vector<Slot*> &slotlist, unsigned val);
+vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsigned> &values, unsigned val);
 
 BOOST_AUTO_TEST_CASE( possible_tests )
 {
-    {   // Three slots, too manyvalues
-        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+    {   // Test the possibleRegisters function, for remappings
+        vector<RegisterSlot *> slots = {new RegisterSlot(), new RegisterSlot(),
             new RegisterSlot()};
 
-        ((RegisterSlot*)slots[0])->setValidArguments({0,1,2,3,4});
-        ((RegisterSlot*)slots[1])->setValidArguments({0,1,4,2});
-        ((RegisterSlot*)slots[2])->setValidArguments({0,1,4});
+        slots[0]->setValidArguments({0,1,2,3,4});
+        slots[1]->setValidArguments({0,1,4,2});
+        slots[2]->setValidArguments({0,1,4});
 
         slots[0]->setValue(0);
         slots[1]->setValue(0);
         slots[2]->setValue(1);
 
-        // auto p = possibleRegisters(slots, {0,1,2}, 0);
+        auto value_list = vector<unsigned>({0,1,2});
 
-        // for(auto k: p)
-        //     cout << k << " ";
-        // cout << endl;
-        //TODO
+        auto p = possibleRegisters(slots, value_list, 0);
+
+        BOOST_REQUIRE(p == vector<unsigned>({0,1}));
     }
 }
 
 BOOST_AUTO_TEST_CASE( mapping_tests )
 {
-    {   // Three slots, too manyvalues
-        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+    {   // 5 slots, simple mapping
+        vector<RegisterSlot *> slots = {new RegisterSlot(), new RegisterSlot(),
             new RegisterSlot(), new RegisterSlot(), new RegisterSlot()};
 
-        ((RegisterSlot*)slots[0])->setValidArguments({0,1,2,3});
-        ((RegisterSlot*)slots[1])->setValidArguments({0,1,2,3});
-        ((RegisterSlot*)slots[2])->setValidArguments({0,1,2,3});
-        ((RegisterSlot*)slots[3])->setValidArguments({0,1,2,3});
-        ((RegisterSlot*)slots[4])->setValidArguments({0,1,2,3});
+        slots[0]->setValidArguments({0,1,2,3});
+        slots[1]->setValidArguments({0,1,2,3});
+        slots[2]->setValidArguments({0,1,2,3});
+        slots[3]->setValidArguments({0,1,2,3});
+        slots[4]->setValidArguments({0,1,2,3});
 
         slots[0]->setValue(0);
         slots[1]->setValue(0);
@@ -543,38 +669,61 @@ BOOST_AUTO_TEST_CASE( mapping_tests )
         slots[4]->setValue(0);
 
         auto mapped = canonicalMapping(slots, {0,0,0,0,1});
+        BOOST_REQUIRE(mapped.second == true);
+        BOOST_REQUIRE(mapped.first == vector<unsigned>({0,0,0,0,1}));
 
-        cout << mapped.second << endl;
-        for(auto reg: mapped.first)
-            cout << reg << " ";
-        cout << endl;
+        auto mapped2 = canonicalMapping(slots);
+        BOOST_REQUIRE(mapped2.second == true);
+        BOOST_REQUIRE(mapped2.first == vector<unsigned>({0,0,0,0,0}));
     }
 
-    {   // Three slots, too manyvalues
-        vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
-            new RegisterSlot(), new RegisterSlot(), new RegisterSlot()};
+    {   // Three slots, more complex mappings
+        vector<RegisterSlot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot()};
 
-        ((RegisterSlot*)slots[0])->setValidArguments({0,1,2});
-        ((RegisterSlot*)slots[1])->setValidArguments({0,1,2});
-        ((RegisterSlot*)slots[2])->setValidArguments({0,1,2});
-        ((RegisterSlot*)slots[3])->setValidArguments({0,1,2});
-        ((RegisterSlot*)slots[4])->setValidArguments({0,1,2});
+        slots[0]->setValidArguments({0,1,2,3});
+        slots[1]->setValidArguments({0,1,2});
+        slots[2]->setValidArguments({0,2,3});
+
+        slots[0]->setValue(1);
+        slots[1]->setValue(1);
+        slots[2]->setValue(0);
+
+        auto mapped = canonicalMapping(slots);
+        BOOST_REQUIRE(mapped.second == true);
+        BOOST_REQUIRE(mapped.first == vector<unsigned>({0,0,2}));
+    }
+
+    {   // Three slots, more complex mappings
+        vector<RegisterSlot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot()};
+
+        slots[0]->setValidArguments({0,1,2,3});
+        slots[1]->setValidArguments({1,2});
+        slots[2]->setValidArguments({0,2,3});
 
         slots[0]->setValue(0);
         slots[1]->setValue(0);
         slots[2]->setValue(0);
-        slots[3]->setValue(0);
-        slots[4]->setValue(0);
 
-        canonicalIterator c_iter(slots);
+        auto mapped = canonicalMapping(slots);
+        BOOST_REQUIRE(mapped.second == true);
+        BOOST_REQUIRE(mapped.first == vector<unsigned>({2,2,2}));
+    }
 
-        for(int i = 0; i < 10; ++i)
-        {
-            // for(auto r : getSlotValues(slots))
-            //     cout << r << " ";
-            // cout << endl;
-            c_iter.next();
-        }
+    {   // Three slots, more complex mappings
+        vector<RegisterSlot *> slots = {new RegisterSlot(), new RegisterSlot(),
+            new RegisterSlot()};
 
+        slots[0]->setValidArguments({1,2,3});
+        slots[1]->setValidArguments({0,1});
+        slots[2]->setValidArguments({0,2,3});
+
+        slots[0]->setValue(0);
+        slots[1]->setValue(0);
+        slots[2]->setValue(0);
+
+        auto mapped = canonicalMapping(slots);
+        BOOST_REQUIRE(mapped.second == false);
     }
 }

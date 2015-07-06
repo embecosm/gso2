@@ -74,6 +74,7 @@ class AVRRegisterSlot : public RegisterSlot
 public:
     AVRRegisterSlot(AvrRegisterClasses rclass, bool _write=false, bool _read=true) : RegisterSlot(_write, _read)
     {
+        setRegisterClassID(rclass);
         switch(rclass)
         {
         case ALL_REGISTERS:

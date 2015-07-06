@@ -10,9 +10,10 @@ class canonicalIteratorBasic
 public:
     canonicalIteratorBasic(std::vector<Slot*> &slotlist_);
 
+    void initialise();
     bool next();
 protected:
-    std::vector<Slot*> slotlist;
+    std::vector<RegisterSlot*> slotlist;
     std::vector<std::vector<unsigned>> skips;
 };
 
@@ -49,6 +50,8 @@ protected:
     std::vector<std::vector<unsigned>> skips;
     std::vector<unsigned> canonical;
     unsigned max_class_size;
+
+    bool canonicalStep();
 };
 
 class canonicalIteratorCommutative
@@ -76,6 +79,6 @@ private:
     std::vector<unsigned> live_in, live_out;
 };
 
-std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<Slot*> &slotlist, std::vector<unsigned> values = {});
+std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> values = {});
 
 #endif

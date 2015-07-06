@@ -19,7 +19,7 @@ public:
 
         @return The value stored by the slot.
     */
-    virtual unsigned getValue() const
+    virtual unsigned getValue()
     {
         return value;
     }
@@ -46,7 +46,7 @@ public:
         @param os  The stream to output to.
         @param d   The slot whose value to output.
     */
-    friend std::ostream &operator<<(std::ostream &os, const Slot &d)
+    friend std::ostream &operator<<(std::ostream &os, Slot &d)
     {
         return os << d.toString();
     }
@@ -58,7 +58,7 @@ public:
         @param os  The stream to output to.
         @param d   The slot whose value to output.
     */
-    friend std::ostream &operator<<(std::ostream &os, const Slot *d)
+    friend std::ostream &operator<<(std::ostream &os, Slot *d)
     {
         return os << d->toString();
     }
@@ -72,7 +72,7 @@ protected:
 
         @return The printable string of the slot's value.
     */
-    virtual std::string toString() const
+    virtual std::string toString()
     {
         return std::to_string(getValue());
     }
@@ -103,11 +103,12 @@ public:
         @param value    An value to initialise the slot to.
     */
     RegisterSlot(bool _write=false, bool _read=true,
-        std::vector<unsigned> _validArguments={}, unsigned value=0)
+        std::vector<unsigned> _validArguments={}, unsigned value=0, int _classid=-1)
     {
         read = _read;
         write = _write;
         validArguments = _validArguments;
+        classid = _classid;
         std::sort(validArguments.begin(), validArguments.end());
         setValue(value);
     }
@@ -140,13 +141,31 @@ public:
             setValue(validArguments[0]);
     }
 
+    /*! Get the ID of the register class associated with this register slot
+
+        @return The class ID of the register slot.
+    */
+    int getRegisterClassID()
+    {
+        return classid;
+    }
+
+    /*! Set the ID of the register class associated with this register slot
+
+        @param classid  The class ID of the register slot.
+    */
+    void setRegisterClassID(int classid)
+    {
+        this->classid = classid;
+    }
+
 private:
     bool read, write;
-
+    int classid;
     std::vector<unsigned> validArguments;
 
 protected:
-    virtual std::string toString() const
+    virtual std::string toString()
     {
         return "r" + std::to_string(getValue());
     }

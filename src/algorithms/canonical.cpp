@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <vector>
-#include <unordered_set>
+#include <set>
 #include <iostream>
 
 #include "canonical.hpp"
@@ -8,58 +8,104 @@
 using namespace std;
 
 canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
-: canonicalIteratorBasic(slotlist_), canonical(slotlist_.size())
+: canonicalIteratorBasic(slotlist_), canonical(slotlist.size())
 {
-    max_class_size = 0;
+    // Find number of different register values possible
+    std::set<int> all;
+
     for(auto slot: slotlist)
     {
-        unsigned c_len = ((RegisterSlot*)slot)->getValidArguments().size();
-
-        if(c_len > max_class_size)
-            max_class_size = c_len;
+        auto va = slot->getValidArguments();
+        all.insert(va.begin(), va.end());
     }
+
+    max_class_size = all.size();
+
+    // Since canonical is initialised to all zeroes and this may not map onto
+    // the sequences of register classes we try to map, and then iterate
+    // through canonical values until we find a valid mapping.
+    while(true)
+    {
+        auto mapping = canonicalMapping(slotlist, canonical);
+
+        if(mapping.second)
+        {
+            for(unsigned i = 0; i < slotlist.size(); ++i)
+                slotlist[i]->setValue(mapping.first[i]);
+            return;
+        }
+
+        bool found_next = canonicalStep();
+
+        if(!found_next)
+        {
+            // This case should never happen, since we will have iterated
+            // through all the canonical register sequences and not found a
+            // mapping. This probably indicates a bug somewhere.
+            cerr << "Unable to find a canonical mapping for the following"
+                    " register classes:\n";
+
+            for(unsigned i = 0; i < slotlist.size(); ++i)
+            {
+                cout << "    Slot " << i << ": ";
+                for(auto reg: slotlist[i]->getValidArguments())
+                    cout << reg << " ";
+                cout << endl;
+            }
+
+            // Lets continue anyway
+            for(unsigned i = 0; i < slotlist.size(); ++i)
+                slotlist[i]->setValue(slotlist[i]->getValidArguments().front());
+            return;
+        }
+    }
+}
+
+bool canonicalIterator::canonicalStep()
+{
+    bool found_next = false;
+
+    for(unsigned i = canonical.size()-1; i > 0; i--)
+    {
+        unsigned next = canonical[i] + 1;
+
+        unsigned max = 0;
+        for(unsigned j = 0; j < i; ++j)
+        {
+            auto val = canonical[j];
+            if(val > max)
+                max = val;
+        }
+
+        if(next > max + 1 || next > max_class_size)
+        {
+            canonical[i] = 0;
+            continue;
+        }
+        else
+        {
+            canonical[i] = next;
+            found_next = true;
+            break;
+        }
+    }
+
+    return found_next;
 }
 
 bool canonicalIterator::next()
 {
     while(true)
     {
-        bool found_next = false;
-
-        for(unsigned i = canonical.size()-1; i > 0; i--)
-        {
-            unsigned next = canonical[i] + 1;
-
-            unsigned max = 0;
-            for(unsigned j = 0; j < i; ++j)
-            {
-                auto val = canonical[j];
-                if(val > max)
-                    max = val;
-            }
-
-            if(next > max + 1 || next >= max_class_size)
-            {
-                canonical[i] = 0;
-                continue;
-            }
-            else
-            {
-                canonical[i] = next;
-                found_next = true;
-                break;
-            }
-        }
+        bool found_next = canonicalStep();
 
         if(!found_next)
         {
             for(unsigned i = 0; i < slotlist.size(); ++i)
-                slotlist[i]->setValue(((RegisterSlot*)slotlist[i])->getValidArguments().front());
+                slotlist[i]->setValue(slotlist[i]->getValidArguments().front());
             return false;
         }
 
-        // // TODO update canonical mapping to take a values parameter, and just
-        // // get the register classes from the slotlist.
         auto mapping = canonicalMapping(slotlist, canonical);
 
         if(mapping.second)
@@ -76,7 +122,7 @@ canonicalIteratorBasic::canonicalIteratorBasic(vector<Slot*> &slotlist_)
     for(auto slot: slotlist_)
     {
         if(dynamic_cast<RegisterSlot*>(slot) != 0)
-            slotlist.push_back(slot);
+            slotlist.push_back((RegisterSlot*)slot);
     }
 }
 
@@ -84,7 +130,7 @@ bool canonicalIteratorBasic::next()
 {
     for(int i = slotlist.size()-1; i > 0; i--)
     {
-        auto rs_i   = (RegisterSlot *) slotlist[i];
+        auto rs_i   = slotlist[i];
         auto va_i   = rs_i->getValidArguments();
 
         unsigned next = rs_i->getValue() + 1;
@@ -112,23 +158,57 @@ bool canonicalIteratorBasic::next()
     return false;
 }
 
-vector<unsigned> possibleRegisters(vector<Slot*> &slotlist, vector<unsigned> &values, unsigned val)
+/*! Find the possible registers that a value, val, could be remapped to. This
+    satisfies the constraints of every slot.
+
+    For example,
+        Register value,    Register class
+        1                  {  1,2,3}
+        0                  {0,1,2,3}
+        1                  {0,1,2}
+        0                  {0,1,2,3}
+
+    With val=1, the list of possibles is {1,2}, since these are the valid values
+    for a remapping of the register 1.
+
+    @param slotlist  The list of register slots which contain the register
+                     classes.
+    @param values    The list of values which correspond to the slotlist. Note
+                     that these do not necessarily have to be valid (as per
+                     the register classes), but is to specify the constraints
+                     of the remapping (i.e. which registers must have the same
+                     label).
+    @param val       The register for which to find remappings.
+    @return          The list of valid register that val can be remapped to.
+*/
+vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsigned> &values, unsigned val)
 {
     vector<unsigned> possibles;
-    bool set = false;
+    bool isset = false;
+    set<int> classes;
 
     for(unsigned i = 0; i < slotlist.size(); ++i)
     {
         if(values[i] == val)
         {
-            if(!set)
+            int classid = slotlist[i]->getRegisterClassID();
+
+            if(classid != -1)
             {
-                set = true;
-                possibles = ((RegisterSlot*)slotlist[i])->getValidArguments();
+                auto result = classes.insert(classid);
+
+                if(result.second == false)
+                    continue;
+            }
+
+            if(!isset)
+            {
+                isset = true;
+                possibles = slotlist[i]->getValidArguments();
             }
             else
             {
-                auto va = ((RegisterSlot*)slotlist[i])->getValidArguments();
+                auto va = slotlist[i]->getValidArguments();
 
                 vector<unsigned> intersect;
                 set_intersection(possibles.begin(),possibles.end(),va.begin(),va.end(), back_inserter(intersect));
@@ -143,16 +223,15 @@ vector<unsigned> possibleRegisters(vector<Slot*> &slotlist, vector<unsigned> &va
 }
 
 // TODO: precompute register class intersections
-pair<vector<unsigned>,bool> canonicalMapping(vector<Slot*> &slotlist,
+pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
         vector<unsigned> values)
 {
     unsigned i = 0;
-    int possibilities[slotlist.size()] = {0};
+    vector<int> possibilities(slotlist.size());
     vector<unsigned> mapping(slotlist.size());
 
     if(values.size() != slotlist.size())
     {
-        cout << "resetting"<<endl;
         values.clear();
         values.resize(slotlist.size());
 
@@ -164,7 +243,6 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<Slot*> &slotlist,
 
     while(i < slotlist.size())
     {
-        // cout << i << endl;
         auto mv = find(values.begin(), values.begin()+i, values[i]);
         if(i > 0 && mv != values.begin()+i)
         {
@@ -178,12 +256,10 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<Slot*> &slotlist,
                 {
                     work = true;
                 }
-                // cout << "p, forward: " << mapping[n] << endl;
                 continue;
             }
             else
             {
-                // cout << "p, backwards" << endl;
                 possibilities[i] = 0;
                 i--;
                 continue;
@@ -198,25 +274,14 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<Slot*> &slotlist,
 
         auto possibles_ = possibleRegisters(slotlist, values, values[i]);
 
-        // cout << "possibles_: ";
-        // for(auto p: possibles_)
-        //     cout << p << " ";
-        // cout << endl;
-
         auto pend = remove_if(possibles_.begin(), possibles_.end(),
             [mapping,i] (unsigned p) {
                 return (find(mapping.begin(), mapping.begin()+i, p) != mapping.begin()+i);
             });
         vector<unsigned> possibles(possibles_.begin(), pend);
 
-        // cout << "possibles: ";
-        // for(auto p: possibles)
-        //     cout << p << " ";
-        // cout << endl;
-
         if(possibles.size() == 0)
         {
-            // cout << "no possibles" << endl;
             possibilities[i] = 0;
             i--;
             continue;
@@ -224,13 +289,11 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<Slot*> &slotlist,
 
         if(possibilities[i] >= (int) possibles.size())
         {
-            // cout << "run out of possibles" << endl;
             possibilities[i] = 0;
             i--;
             continue;
         }
 
-        // cout << "mapped " << possibles[possibilities[i]] << endl;
         mapping[i] = possibles[possibilities[i]];
         possibilities[i]++;
         i++;
