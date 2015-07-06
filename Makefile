@@ -20,15 +20,15 @@ omega: $(SOURCES) $(GENERATEDSOURCES) $(MAINSOURCE) $(SOURCES_HPP)
 	python src/generate.py $< $@
 
 test: buildtest
-	cd tests && for BIN in ${TESTS}; do ../$$BIN; done
+	cd tests && for BIN in ${TESTS}; do ../$$BIN -p $(TESTFLAGS); done
 
 buildtest: tests/canonical_speed $(TESTS)
 
 tests/canonical_speed: tests/canonical_speed.cpp $(SOURCES) Makefile $(SOURCES_HPP)
 	$(CC) $(CFLAGS) tests/canonical_speed.cpp $(SOURCES) -o tests/canonical_speed -I src
 
-%.test: %.cpp Makefile $(SOURCES_HPP)
-	$(CC) $(CFLAGS) $< $(SOURCES) -o $@ -I src -lboost_unit_test_framework -O0
+%.test: %.cpp Makefile $(SOURCES_HPP) $(SOURCES) $(GENERATEDSOURCES)
+	$(CC) $(CFLAGS) $< $(SOURCES) -o $@ -I src -lboost_unit_test_framework
 
 clean:
 	rm -f omega tests/tests tests/canonical_speed
