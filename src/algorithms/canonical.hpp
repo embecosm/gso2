@@ -2,7 +2,19 @@
 #define __CANONICAL_H__
 
 #include <vector>
+#include <unordered_map>
 #include "../slots.hpp"
+
+class canonicalIteratorBasic
+{
+public:
+    canonicalIteratorBasic(std::vector<Slot*> &slotlist_);
+
+    bool next();
+protected:
+    std::vector<Slot*> slotlist;
+    std::vector<std::vector<unsigned>> skips;
+};
 
 /*! \class canonicalIterator
     Iteratively generate values for registers slots.
@@ -14,7 +26,7 @@ the register classes of each slot.
 
 */
 
-class canonicalIterator
+class canonicalIterator : public canonicalIteratorBasic
 {
 public:
     /*!
@@ -33,22 +45,10 @@ public:
             wrapped around.
     */
     bool next();
-private:
-    std::vector<Slot*> slotlist;
+protected:
     std::vector<std::vector<unsigned>> skips;
-};
-
-/// \class canonicalIteratorBasic
-
-class canonicalIteratorBasic
-{
-public:
-    canonicalIteratorBasic(std::vector<Slot*> &slotlist_);
-
-    bool next();
-private:
-    std::vector<Slot*> slotlist;
-    std::vector<std::vector<unsigned>> skips;
+    std::vector<unsigned> canonical;
+    unsigned max_class_size;
 };
 
 class canonicalIteratorCommutative
@@ -75,5 +75,7 @@ private:
     std::vector<std::pair<unsigned,unsigned>> commute_list;
     std::vector<unsigned> live_in, live_out;
 };
+
+std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<Slot*> &slotlist, std::vector<unsigned> values = {});
 
 #endif

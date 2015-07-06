@@ -16,7 +16,7 @@ public:
         max = (current << (values.size() - n));
     }
 
-    // TODO: should we return the actual values here, rather than the index of 
+    // TODO: should we return the actual values here, rather than the index of
     // the value?
     std::vector<unsigned> getSelection()
     {
