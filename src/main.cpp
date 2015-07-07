@@ -57,13 +57,17 @@ int main(int argc, char *argv[])
 
         for(auto slot: slots)
         {
-            auto va = static_cast<RegisterSlot*>(slot)->getValidArguments();
-
-            slot->setValue(*min_element(va.begin(), va.end()));
-            if(dynamic_cast<ConstantSlot*>(slot) != 0)
+            if(dynamic_cast<RegisterSlot*>(slot) != 0)
+            {
+                auto va = static_cast<RegisterSlot*>(slot)->getValidArguments();
+                slot->setValue(*min_element(va.begin(), va.end()));
+            }
+            else if(dynamic_cast<ConstantSlot*>(slot) != 0)
             {
                 constant_slots.push_back((ConstantSlot*)slot);
             }
+            else
+                slot->setValue(0);
         }
 
         canonicalIterator c_iter(slots);
