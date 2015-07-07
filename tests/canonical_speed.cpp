@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
 
         rs->setValidArguments(vals);
         rs->setValue(0);
+        rs->setRegisterClassID(0);
         slots.push_back(rs);
     }
 

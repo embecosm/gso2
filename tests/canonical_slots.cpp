@@ -635,14 +635,14 @@ BOOST_AUTO_TEST_CASE( possible_tests )
             new RegisterSlot()};
 
         slots[0]->setValidArguments({0,1,2,3,4});
-        slots[1]->setValidArguments({0,1,4,2});
+        slots[1]->setValidArguments({0,1,5});
         slots[2]->setValidArguments({0,1,4});
 
         slots[0]->setValue(0);
         slots[1]->setValue(0);
         slots[2]->setValue(1);
 
-        auto value_list = vector<unsigned>({0,1,2});
+        auto value_list = vector<unsigned>({0,0,1});
 
         auto p = possibleRegisters(slots, value_list, 0);
 

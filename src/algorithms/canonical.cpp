@@ -223,12 +223,28 @@ vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsig
 }
 
 // TODO: precompute register class intersections
+// TODO: explaination, comments
+// TODO: Investigate why this slows down with regular, but restricted classes 
+//           e.g {0-3}x8 slower than {0-7}x8
 pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
         vector<unsigned> values)
 {
     unsigned i = 0;
     vector<int> possibilities(slotlist.size());
     vector<unsigned> mapping(slotlist.size());
+
+    // max of all classes
+    vector<int> mapping_count;
+
+    unsigned largest_reg=0;
+    for(auto slot: slotlist)
+    {
+        unsigned m = slot->getValidArguments().back();
+
+        if(m > largest_reg)
+            largest_reg = m;
+    }
+    mapping_count.resize(largest_reg+1);
 
     if(values.size() != slotlist.size())
     {
@@ -250,6 +266,7 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
             {
                 int n = mv - values.begin();
                 mapping[i] = mapping[n];
+                mapping_count[mapping[i]]++;
                 possibilities[i] = -1;
                 i++;
                 if(i >= slotlist.size())
@@ -260,6 +277,9 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
             }
             else
             {
+                if(i == 0)
+                    break;
+                mapping_count[mapping[i-1]]--;
                 possibilities[i] = 0;
                 i--;
                 continue;
@@ -274,14 +294,20 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
 
         auto possibles_ = possibleRegisters(slotlist, values, values[i]);
 
-        auto pend = remove_if(possibles_.begin(), possibles_.end(),
-            [mapping,i] (unsigned p) {
-                return (find(mapping.begin(), mapping.begin()+i, p) != mapping.begin()+i);
-            });
-        vector<unsigned> possibles(possibles_.begin(), pend);
+        // TODO: optimize so we aren't doing so many allocations
+        vector<unsigned> possibles;
+        possibles.reserve(possibles_.size());
+
+        // TODO optimisation: flags for size>0, possiblities[i]>=size,  var for possibilities[i]-th val, then break
+        for(unsigned k=0; k < possibles_.size(); ++k)
+            if(mapping_count[possibles_[k]] == 0)
+                possibles.push_back(possibles_[k]);
 
         if(possibles.size() == 0)
         {
+            if(i == 0)
+                break;
+            mapping_count[mapping[i-1]]--;
             possibilities[i] = 0;
             i--;
             continue;
@@ -289,12 +315,16 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
 
         if(possibilities[i] >= (int) possibles.size())
         {
+            if(i == 0)
+                break;
+            mapping_count[mapping[i-1]]--;
             possibilities[i] = 0;
             i--;
             continue;
         }
 
         mapping[i] = possibles[possibilities[i]];
+        mapping_count[mapping[i]]++;
         possibilities[i]++;
         i++;
         if(i >= slotlist.size())
