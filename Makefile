@@ -11,15 +11,19 @@ CC=g++-4.9
 .PHONY=test all
 
 all:
-	make -j omega buildtest
+	make -j omega buildtest omega_slow
 
 omega: $(SOURCES) $(GENERATEDSOURCES) $(MAINSOURCE) $(SOURCES_HPP)
 	$(CC) $(CFLAGS) $(SOURCES) $(MAINSOURCE) -o omega
 
+omega_slow: $(SOURCES) $(GENERATEDSOURCES) $(MAINSOURCE) $(SOURCES_HPP)
+	$(CC) $(CFLAGS) $(SOURCES) $(MAINSOURCE) -o omega_slow -O0
+
 %_gen.hpp: %.yml src/generate.py
 	python src/generate.py $< $@
 
-test: buildtest
+test:
+	make buildtest -j
 	cd tests && for BIN in ${TESTS}; do ../$$BIN -p $(TESTFLAGS); done
 
 buildtest: tests/canonical_speed $(TESTS)
