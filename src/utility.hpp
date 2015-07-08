@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <string>
 
 template <typename T>
 class Combinations
@@ -60,5 +61,11 @@ private:
     unsigned n;
     std::vector<T> &values;
 };
+
+class Instruction;
+class Slot;
+
+std::string print(const std::vector<Instruction *> &insns,
+    std::vector<Slot*> &slots);
 
 #endif
