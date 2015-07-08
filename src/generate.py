@@ -37,6 +37,11 @@ public:
         return {{ {slots} }};
     }}
 
+    unsigned getNumberOfSlots() override
+    {{
+        return {n_slots};
+    }}
+
     std::string toString()
     {{
         std::string output;

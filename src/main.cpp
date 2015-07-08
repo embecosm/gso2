@@ -6,6 +6,7 @@
 #include "algorithms/canonical.hpp"
 #include "algorithms/bruteforce.hpp"
 #include "algorithms/test.hpp"
+#include "utility.hpp"
 
 using namespace std;
 
@@ -65,6 +66,7 @@ int main(int argc, char *argv[])
             else if(dynamic_cast<ConstantSlot*>(slot) != 0)
             {
                 constant_slots.push_back((ConstantSlot*)slot);
+                slot->setValue(0);
             }
             else
                 slot->setValue(0);
@@ -87,16 +89,8 @@ int main(int argc, char *argv[])
                     if(correct)
                     {
                         cout << "Found" << endl;
-                        auto current_slot = &slots[0];
 
-                        for(auto insn: insns)
-                        {
-                            cout << "    " << insn->toString(current_slot) << endl;
-
-                            auto n = insn->execute(&mach, current_slot);
-                            current_slot += n;
-                        }
-                        // return 0;
+                        cout << print(insns, slots) << endl;
                     }
                 }
             } while(c_iter.next());

@@ -65,6 +65,11 @@ public:
         return sum_slots;
     }
 
+    virtual unsigned getNumberOfSlots()
+    {
+        return sum_slots;
+    }
+
     unsigned sum_slots;
     unsigned add_extra;
 };
