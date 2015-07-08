@@ -313,7 +313,12 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
             continue;
         }
 
-        if(possibilities[i] >= (int) possibles.size())
+        // We return to the previous value if we have exceeded the number of
+        // possibles, or if we have tested more values than there are
+        // positions left. The latter condition is a speed up - if it is not
+        // there, large classes will be explored full, making this function
+        // take up to seconds (!) to execute.
+        if(possibilities[i] >= (int) possibles.size() || possibilities[i] > possibilities.size() - i)
         {
             if(i == 0)
                 break;
