@@ -178,14 +178,16 @@ bool canonicalIteratorBasic::next()
                      the register classes), but is to specify the constraints
                      of the remapping (i.e. which registers must have the same
                      label).
-    @param val       The register for which to find remappings.
+    @param loc       The location in the sequence of the register for which to
+                     find remappings.
     @return          The list of valid register that val can be remapped to.
 */
-vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsigned> &values, unsigned val)
+vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsigned> &values, unsigned loc)
 {
     vector<unsigned> possibles;
     bool isset = false;
     set<int> classes;
+    unsigned val = values[loc];
 
     for(unsigned i = 0; i < slotlist.size(); ++i)
     {
@@ -292,7 +294,7 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
         // classes with the same register, minus the registers already
         // remapped.
 
-        auto possibles_ = possibleRegisters(slotlist, values, values[i]);
+        auto possibles_ = possibleRegisters(slotlist, values, i);
 
         // TODO: optimize so we aren't doing so many allocations
         vector<unsigned> possibles;
