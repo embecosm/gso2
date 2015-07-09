@@ -89,12 +89,17 @@ int main(int argc, char *argv[])
                     if(correct)
                     {
                         cout << "Found" << endl;
-
                         cout << print(insns, slots) << endl;
                     }
                 }
             } while(c_iter.next());
         } while(bruteforceIterate(constant_slots));
+
+        // Free the instructions and slots
+        for(auto slot: slots)
+            delete slot;
+        for(auto insn: insns)
+            delete insn;
 
     } while(bruteforceIterate(insn_factories, current_factories));
 
