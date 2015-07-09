@@ -66,7 +66,9 @@ enum AvrRegisterClasses
     ALL_REGISTERS,
     REGISTERS_16PLUS,
     REGISTER0,
-    REGISTER1
+    REGISTER1,
+    REGISTER_EVEN,
+    REGISTER_24PLUS_EVEN
 };
 
 class AVRRegisterSlot : public RegisterSlot
@@ -89,6 +91,14 @@ public:
         case REGISTER1:
             setValidArguments({1});
             break;
+        case REGISTER_EVEN:
+            setValidArguments({0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30});
+            break;
+        case REGISTER_24PLUS_EVEN:
+            setValidArguments({24,26,28,30});
+            break;
+        default:
+            assert(!"Undefined register class");
         }
     }
 };

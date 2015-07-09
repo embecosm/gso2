@@ -82,3 +82,38 @@ instructions:
       rA = cB;
     print_name: "ldi"
     format: "ldi %s, %s"
+  movw:
+    operands:
+      - type: "RegisterSlot"
+        modifier: "w"
+        class: "REGISTER_EVEN"
+      - type: "RegisterSlot"
+        modifier: "r"
+        class: "REGISTER_EVEN"
+    implementation: |
+      uint8_t rB_p = mach->getRegisterValue(slots[1]->getValue()+1);
+
+      rA = rB;
+      mach->setRegisterValue(slots[0]->getValue()+1, rB_p);
+    print_name: "movw"
+    format: "movw %s, %s"
+  adiw:
+    operands:
+      - type: "RegisterSlot"
+        modifier: "rw"
+        class: "REGISTER_24PLUS_EVEN"
+      - type: "ConstantSlot"
+        ranges:
+          - lower: 0
+            upper: 63
+    implementation: |
+      uint8_t rA_p = mach->getRegisterValue(slots[0]->getValue()+1);
+
+      uint16_t tmp = (rA_p << 8) | rA;
+
+      tmp += cB;
+
+      rA = tmp & 0xFF;
+      mach->setRegisterValue(slots[0]->getValue()+1, (tmp >> 8)&0xFF);
+    print_name: "adiw"
+    format: "adiw %s, %s"

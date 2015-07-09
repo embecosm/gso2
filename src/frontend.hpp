@@ -14,7 +14,7 @@ class Instruction
 {
 public:
     // Instruction();
-    // virtual ~Instruction();
+    virtual ~Instruction() {};
 
     virtual unsigned execute(TargetMachineBase *_mach, Slot **slots) = 0;
     virtual std::vector<Slot*> getSlots() {return {};};

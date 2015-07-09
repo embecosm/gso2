@@ -15,6 +15,8 @@
 class Slot
 {
 public:
+    virtual ~Slot() {}
+
     /*! Get the value stored by the slot.
 
         @return The value stored by the slot.
