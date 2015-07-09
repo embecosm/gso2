@@ -12,12 +12,10 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    // Parse options
+    // TODO: options
 
-    // Initialise for particular target
-
-    // Initialise backend
-
+    // An example goal function. Eventually we should read in a sequence of
+    // instructions and use this as a goal.
     function<void(AvrMachine&)> goal(
         [](AvrMachine &mach){
             // mach.setRegisterValue(1, (mach.getRegisterValue(1)+37)&0xFF);
@@ -27,6 +25,7 @@ int main(int argc, char *argv[])
 
     AvrMachine mach, mach_expected, mach_initial;
 
+    // Compute a test state - for quick discarding of invalid sequences.
     mach_expected.initialiseRandom();
     mach_initial = mach_expected;
     goal(mach_expected);
@@ -36,26 +35,30 @@ int main(int argc, char *argv[])
 
     vector<decltype(insn_factories)::iterator> current_factories;
 
+    // The number of instructions should eventually be parameterised
     current_factories.push_back(insn_factories.begin());
     current_factories.push_back(insn_factories.begin());
-    current_factories.push_back(insn_factories.begin());
-    current_factories.push_back(insn_factories.begin());
+    // current_factories.push_back(insn_factories.begin());
+    // current_factories.push_back(insn_factories.begin());
 
     do {
         vector<Instruction*> insns;
 
-        for(auto factory: current_factories)
+        // Create the instructions, as per the current iterator
+        for(auto &factory: current_factories)
             insns.push_back((*factory)());
 
         vector<Slot*> slots;
         vector<ConstantSlot*> constant_slots;
 
+        // Get a list of all of the slots in the instruction list
         for(auto insn: insns)
         {
             auto s1 = insn->getSlots();
             slots.insert(slots.end(), s1.begin(), s1.end());
         }
 
+        // Work out what types of slots we need to iterate over
         for(auto slot: slots)
         {
             if(dynamic_cast<RegisterSlot*>(slot) != 0)
@@ -74,12 +77,17 @@ int main(int argc, char *argv[])
 
         canonicalIterator c_iter(slots);
 
+        // Bruteforce over the possible constants, and canonically iterate
+        // over the register slots.
         do
         {
             do
             {
                 mach = mach_initial;
 
+                // Perform an equivalence test, and if it succeeds, run
+                // multiple tests to work out if the sequence is likely to be
+                // correct.
                 if(testEquivalence(insns, slots, mach_initial, mach_expected))
                 {
                     AvrMachine mach_test;
