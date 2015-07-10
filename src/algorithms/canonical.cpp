@@ -122,15 +122,7 @@ canonicalIteratorBasic::canonicalIteratorBasic(vector<Slot*> &slotlist_)
     for(auto slot: slotlist_)
     {
         if(dynamic_cast<RegisterSlot*>(slot) != 0)
-        {
-            RegisterSlot *rs = (RegisterSlot*)slot;
-            auto va = rs->getValidArguments();
-
-            if(va.size() > 1)
-                slotlist.push_back((RegisterSlot*)slot);
-            else
-                slot->setValue(va.front());
-        }
+            slotlist.push_back((RegisterSlot*)slot);
     }
 }
 
@@ -328,7 +320,7 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
         // positions left. The latter condition is a speed up - if it is not
         // there, large classes will be explored full, making this function
         // take up to seconds (!) to execute.
-        if(possibilities[i] >= (int) possibles.size() || possibilities[i] > (int)possibilities.size() - (int)i)
+        if(possibilities[i] >= (int) possibles.size() || possibilities[i] > possibilities.size() - i)
         {
             if(i == 0)
                 break;

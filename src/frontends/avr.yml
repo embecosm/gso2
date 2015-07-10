@@ -74,7 +74,6 @@ instructions:
     operands:
       - type: "RegisterSlot"
         modifier: "w"
-        class: "REGISTERS_16PLUS"
       - type: "ConstantSlot"
         ranges:
           - lower: 0
