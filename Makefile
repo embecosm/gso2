@@ -1,4 +1,6 @@
 
+LATEXSRC=doc/design.tex
+LATEXDOC=$(LATEXSRC:.tex=.pdf)
 SOURCES=src/algorithms/*.cpp src/utility.cpp
 SOURCES_HPP=src/*.hpp src/*/*.hpp
 MAINSOURCE=src/main.cpp
@@ -11,7 +13,7 @@ CC=g++-4.9
 .PHONY=test all
 
 all:
-	make -j omega buildtest omega_slow
+	make -j omega buildtest omega_slow doc
 
 omega: $(SOURCES) $(GENERATEDSOURCES) $(MAINSOURCE) $(SOURCES_HPP)
 	$(CC) $(CFLAGS) $(SOURCES) $(MAINSOURCE) -o omega
@@ -35,5 +37,11 @@ tests/canonical_speed: tests/canonical_speed.cpp $(SOURCES) Makefile $(SOURCES_H
 	$(CC) $(CFLAGS) $< $(SOURCES) -o $@ -I src -lboost_unit_test_framework
 
 clean:
-	rm -f omega tests/tests tests/canonical_speed
+	rm -f omega $(TESTS) tests/canonical_speed
 	rm -f $(GENERATEDSOURCES)
+	rm -f $(LATEXDOC)
+
+doc: $(LATEXDOC)
+
+%.pdf: %.tex
+	cd $(dir $<); pdflatex -halt-on-error $(notdir $<) && rm -f *.aux *.log
