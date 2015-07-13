@@ -315,6 +315,7 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
     unsigned i = 0;
     vector<int> possibilities(slotlist.size());
     vector<unsigned> mapping(slotlist.size());
+    vector<unsigned> possibles;
 
     bool have_intersections=false;
 
@@ -376,17 +377,18 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
 
         // For all slots with the same value as the current, calculate the
         // intersection of register classes, to compute a list of possible
-        // remappings. Possible remappings are those an intersection of all
-        // classes with the same register, minus the registers already
-        // remapped.
-
-        vector<unsigned> possibles_;
+        // remappings. The intersections are either precomputed, if the
+        // register classes of each slot were known. Otherwise they are
+        // computed on the fly (slower).
 
         if(have_intersections)
         {
             unsigned v = values[i];
             unsigned idx=0;
+            vector<unsigned> *possibles_ptr;
 
+            // Each class id is represented by a single bit, bitwise-oring the
+            // bits together forms the index into the array.
             for(unsigned j = 0; j < slotlist.size(); ++j)
             {
                 if(values[j] == v)
@@ -395,19 +397,36 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
                 }
             }
 
-            possibles_ = (*class_intersections)[idx];
+            possibles_ptr = &(*class_intersections)[idx];
+            possibles.clear();
+
+            const unsigned intersect_size = possibles_ptr->size();
+            possibles.reserve(intersect_size);
+
+            // Once we have the intersections of the classes, we do not want
+            // the registers which we have already remapped. Copy them into a
+            // new vector, so we can leave the precomputed values untouched.
+
+            // TODO optimisation: flags for size>0, possiblities[i]>=size,  var for possibilities[i]-th val, then break
+            for(unsigned k=0; k < intersect_size; ++k)
+                if(mapping_count[(*possibles_ptr)[k]] == 0)
+                    possibles.push_back((*possibles_ptr)[k]);
         }
         else
+        {
+            vector<unsigned> possibles_;
             possibles_ = possibleRegisters(slotlist, values, i);
 
-        // TODO: optimize so we aren't doing so many allocations
-        vector<unsigned> possibles;
-        possibles.reserve(possibles_.size());
+            // This code is mostly similar to above, but the above takes a
+            // pointer to the precomputed vector - about 20% faster than copying.
+            possibles.clear();
+            possibles.reserve(possibles_.size());
 
-        // TODO optimisation: flags for size>0, possiblities[i]>=size,  var for possibilities[i]-th val, then break
-        for(unsigned k=0; k < possibles_.size(); ++k)
-            if(mapping_count[possibles_[k]] == 0)
-                possibles.push_back(possibles_[k]);
+            // TODO optimisation: flags for size>0, possiblities[i]>=size,  var for possibilities[i]-th val, then break
+            for(unsigned k=0; k < possibles_.size(); ++k)
+                if(mapping_count[possibles_[k]] == 0)
+                    possibles.push_back(possibles_[k]);
+        }
 
         if(possibles.size() == 0)
         {
