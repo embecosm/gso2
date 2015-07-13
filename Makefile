@@ -44,4 +44,4 @@ clean:
 doc: $(LATEXDOC)
 
 %.pdf: %.tex
-	cd $(dir $<); pdflatex -halt-on-error $(notdir $<) && rm -f *.aux *.log
+	cd $(dir $<); pdflatex -shell-escape -halt-on-error $(notdir $<) && rm -f *.aux *.log

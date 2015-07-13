@@ -1,6 +1,7 @@
 \documentclass{article}
 
 \usepackage{todonotes}
+\usepackage{minted}
 
 \begin{document}
 
@@ -11,15 +12,86 @@
 
 \section{Introduction}
 
+\todo[inline]{brief overview}
+
+\subsection{Version 2}
+
+The original GNU Superoptimizer (GSO) was designed to find short branch-free sequences of instructions by bruteforcing a large number of possible sequences. There were several limitations, which this rewrite attempts to fix:
+
+\begin{itemize}
+    \item More flexibility. The original GSO was limited to four input operands and one output operand.
+    \item More instruction types. The original GSO supported only integer arithmetic instructions. The second version should support memory and floating point, as well as arithmetic which utilizing more than just the carry flag (only the carry flag was supported previously.)
+    % \item More
+\end{itemize}
+
 \todo[inline]{mention original GSO here}
 
 \todo[inline]{discuss superoptimization in general, and types of superoptimizers}
 \todo[inline]{the need for a toolkit, which allows architectures and different types of superoptimziers to be constucted easily}
 
+
 \section{Components}
 
-\todo[inline]{overall discussion of how the components fit together}
-\todo[inline]{What does the toolkit provide}
+The superoptimizer is designed as a toolkit, so that different parts can be pieced together differently depending on what the superoptimizer needs to do, or how the target architecture is defined.
+
+Superoptimization generally consists of four main stages:
+
+\begin{description}
+    \item[Enumerating.] This stage enumerates the instructions, selecting which types of instructions should be enumerated and the sequence length.
+    \item[Pruning.] There are a huge number of instruction sequences, and they should be pruned, removing the obviously incorrect sequences. This includes techniques such as register renaming, liveness analysis and dead code elimination.
+    \item[Testing.] One of the most expensive parts of the superoptimizer is testing whether the instruction is correct or not. The superoptimizer must simulate or run the instructions. Typically, this is performed on a known test vector, and checked whether the resultant values match the goal function. If they match, the test can be repeated to gain confidence about the validity of the sequence.
+    \item[Costing.] Finally, if a valid sequence if found, it must be costed to work out whether it is actually better to use this sequence --- this will depend heavily on the specific metric optimizing for (e.g. time, energy, code size).
+\end{description}
+
+The toolkit contains algorithms for each of the stages. Below is a small (incomplete) example demonstrating the creation of a list of instructiosn (\texttt{insns}), which is iterated over (with \texttt{bruteforceIterate}). A register renaming pruning technique is applied (\texttt{canonicalIterator}). A quick test of the instruction sequences on an initial test vector is performed (\texttt{testEquivalence}), and then a larger number of tests is performed if this is found to pass (\texttt{testEquivalenceMultiple}).
+
+\begin{minted}{c++}
+    // Set up initial test vectors, mach_initial
+    // Set up a goal function, goal
+    // Compute the expected state, expected = goal(mach_initial)
+
+    // Bruteforce over all instructions
+    do {
+        vector<Instruction*> insns;
+
+        // Create instructions
+        for(auto &factory: current_factories)
+            insns.push_back((*factory)());
+
+        // Get a list of all of the slots in the instruction list
+        vector<Slot*> slots;
+        for(auto insn: insns)
+        {
+            auto s1 = insn->getSlots();
+            slots.insert(slots.end(), s1.begin(), s1.end());
+        }
+
+        // Pruning technique: canonical form
+        canonicalIterator c_iter(slots);
+
+        do {
+            // Quickly eliminate obviously wrong sequences
+            if(testEquivalence(insns, slots, mach_initial, expected))
+            {
+                // Perform more tests, on different test vectors
+                if(testEquivalenceMultiple(insns, slot, goal))
+                {
+                    cout << "Found a sequence:" << endl;
+                    cout << print(insns, slots) << endl;
+                }
+            }
+        } while (c_iter.next());
+
+        // Free the instructions and slots
+        for(auto slot: slots)
+            delete slot;
+        for(auto insn: insns)
+            delete insn;
+    } while (bruteforceIterate(instruction_factories, current));
+
+\end{minted}
+
+The following sections describe in detail the components available and their intended use.
 
 \subsection{Frontends}
 
