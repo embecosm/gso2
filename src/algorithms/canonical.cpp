@@ -12,14 +12,43 @@ canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
 {
     // Find number of different register values possible
     std::set<int> all;
+    int largest_classid=0;
 
     for(auto slot: slotlist)
     {
         auto va = slot->getValidArguments();
         all.insert(va.begin(), va.end());
+
+        int cid = slot->getRegisterClassID();
+
+        if(cid == -1)
+            computed_intersections = false;
+
+        if(cid > largest_classid)
+            largest_classid = cid;
     }
 
     max_class_size = all.size();
+
+    // If we have at least one class which is not set, then do not compute the
+    // intersection and rely on the slower way of doing it.
+    if(computed_intersections)
+    {
+        vector<vector<unsigned>> classes(largest_classid+1);
+
+        for(auto slot: slotlist)
+        {
+            int cid = slot->getRegisterClassID();
+            classes[cid] = slot->getValidArguments();
+        }
+
+        precomputePossibleRegisters(classes);
+    }
+
+    if(slotlist.size() == 0)    // All slots have been excluded.
+    {
+        return;
+    }
 
     // Since canonical is initialised to all zeroes and this may not map onto
     // the sequences of register classes we try to map, and then iterate
@@ -61,6 +90,44 @@ canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
     }
 }
 
+void canonicalIterator::precomputePossibleRegisters(vector<vector<unsigned>> classes)
+{
+    unsigned n_classes = classes.size();
+
+    class_intersections.resize(1 << n_classes);
+
+    // Only support up to a few register classes. TODO handle edge case for
+    // processors with many register classes?
+    for(unsigned class_set = 0; class_set < (1U<<n_classes); ++class_set)
+    {
+        bool isset = false;
+        vector<unsigned> class_intersection;
+
+        for(unsigned i = 0; i < n_classes; ++i)
+        {
+            if(class_set&(1<<i))
+            {
+                if(!isset)
+                {
+                    isset = true;
+                    class_intersection = classes[i];
+                }
+                else
+                {
+                    vector<unsigned> intersect;
+
+                    set_intersection(class_intersection.begin(), class_intersection.end(),
+                        classes[i].begin(), classes[i].end(), back_inserter(intersect));
+
+                    class_intersection = move(intersect);
+                }
+            }
+        }
+
+        class_intersections[class_set] = class_intersection;
+    }
+}
+
 bool canonicalIterator::canonicalStep()
 {
     bool found_next = false;
@@ -95,6 +162,11 @@ bool canonicalIterator::canonicalStep()
 
 bool canonicalIterator::next()
 {
+    if(slotlist.size() == 0)    // All slots have been excluded.
+    {
+        return false;
+    }
+
     while(true)
     {
         bool found_next = canonicalStep();
@@ -106,7 +178,13 @@ bool canonicalIterator::next()
             return false;
         }
 
-        auto mapping = canonicalMapping(slotlist, canonical);
+        pair<vector<unsigned>,bool> mapping;
+
+        // Pass the class_intersections if we had well defined register classes.
+        if(computed_intersections)
+            mapping = canonicalMapping(slotlist, canonical, &class_intersections);
+        else
+            mapping = canonicalMapping(slotlist, canonical, nullptr);
 
         if(mapping.second)
         {
@@ -116,6 +194,8 @@ bool canonicalIterator::next()
         }
     }
 }
+
+//////////////////////////////////////////////////////////////////////////////
 
 canonicalIteratorBasic::canonicalIteratorBasic(vector<Slot*> &slotlist_)
 {
@@ -226,14 +306,19 @@ vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsig
 
 // TODO: precompute register class intersections
 // TODO: explaination, comments
-// TODO: Investigate why this slows down with regular, but restricted classes 
+// TODO: Investigate why this slows down with regular, but restricted classes
 //           e.g {0-3}x8 slower than {0-7}x8
 pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
-        vector<unsigned> values)
+        vector<unsigned> values, vector<vector<unsigned>> *class_intersections)
 {
     unsigned i = 0;
     vector<int> possibilities(slotlist.size());
     vector<unsigned> mapping(slotlist.size());
+
+    bool have_intersections=false;
+
+    if(class_intersections != nullptr)
+        have_intersections = true;
 
     // max of all classes
     vector<int> mapping_count;
@@ -294,7 +379,25 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
         // classes with the same register, minus the registers already
         // remapped.
 
-        auto possibles_ = possibleRegisters(slotlist, values, i);
+        vector<unsigned> possibles_;
+
+        if(have_intersections)
+        {
+            unsigned v = values[i];
+            unsigned idx=0;
+
+            for(unsigned j = 0; j < slotlist.size(); ++j)
+            {
+                if(values[j] == v)
+                {
+                    idx |= 1 << slotlist[j]->getRegisterClassID();
+                }
+            }
+
+            possibles_ = (*class_intersections)[idx];
+        }
+        else
+            possibles_ = possibleRegisters(slotlist, values, i);
 
         // TODO: optimize so we aren't doing so many allocations
         vector<unsigned> possibles;
@@ -320,7 +423,7 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
         // positions left. The latter condition is a speed up - if it is not
         // there, large classes will be explored full, making this function
         // take up to seconds (!) to execute.
-        if(possibilities[i] >= (int) possibles.size() || possibilities[i] > possibilities.size() - i)
+        if(possibilities[i] >= (int) possibles.size() || possibilities[i] > (int)(possibilities.size() - i))
         {
             if(i == 0)
                 break;

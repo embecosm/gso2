@@ -47,11 +47,13 @@ public:
     */
     bool next();
 protected:
-    std::vector<std::vector<unsigned>> skips;
+    bool computed_intersections;
+    std::vector<std::vector<unsigned>> class_intersections;
     std::vector<unsigned> canonical;
     unsigned max_class_size;
 
     bool canonicalStep();
+    void precomputePossibleRegisters(std::vector<std::vector<unsigned>> classes);
 };
 
 class canonicalIteratorCommutative
@@ -79,6 +81,9 @@ private:
     std::vector<unsigned> live_in, live_out;
 };
 
-std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> values = {});
+std::vector<unsigned> possibleRegisters(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> &values, unsigned loc);
+
+std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> values = {},
+    std::vector<std::vector<unsigned>> *class_intersections=nullptr);
 
 #endif

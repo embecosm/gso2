@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_set>
+#include <map>
 
 #include "algorithms/canonical.hpp"
 
@@ -25,9 +26,30 @@ vector<unsigned> getSlotValues(const vector<Slot*> slots)
     return values;
 }
 
-void setupSlots(vector<Slot*> slots, vector<vector<unsigned>> valids)
+void setupSlots(vector<Slot*> slots, vector<vector<unsigned>> valids, vector<unsigned> class_ids={})
 {
     BOOST_REQUIRE_EQUAL(slots.size(), valids.size());
+
+    if(class_ids.size() != slots.size())
+    {
+        std::map<vector<unsigned>, unsigned> id_map;
+        unsigned n_id = 0;
+
+        for(unsigned i = 0; i < slots.size(); ++i)
+        {
+            auto it = id_map.find(valids[i]);
+
+            if(it != id_map.end())
+            {
+                class_ids.push_back(it->second);
+            }
+            else
+            {
+                class_ids.push_back(n_id);
+                id_map[valids[i]] = n_id++;
+            }
+        }
+    }
 
     for(unsigned i = 0; i < slots.size(); i++)
     {
@@ -35,6 +57,7 @@ void setupSlots(vector<Slot*> slots, vector<vector<unsigned>> valids)
 
         rs->setValidArguments(valids[i]);
         rs->setValue(*valids[i].begin());
+        rs->setRegisterClassID(class_ids[i]);
     }
 }
 
