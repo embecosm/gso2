@@ -14,6 +14,7 @@ canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
     std::set<int> all;
     int largest_classid=0;
 
+    computed_intersections = true;
     for(auto slot: slotlist)
     {
         auto va = slot->getValidArguments();
