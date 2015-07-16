@@ -161,6 +161,16 @@ public:
         this->classid = classid;
     }
 
+    bool isWriteSlot()
+    {
+        return write;
+    }
+
+    bool isReadSlot()
+    {
+        return read;
+    }
+
 private:
     bool read, write;
     int classid;

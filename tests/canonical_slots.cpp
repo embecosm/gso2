@@ -749,3 +749,241 @@ BOOST_AUTO_TEST_CASE( mapping_tests_4 )
     BOOST_REQUIRE(mapped.second == false);
 }
 
+BOOST_AUTO_TEST_CASE( liveness_mapping_tests_1 )
+{
+    vector<RegisterSlot *> slots = {
+        new RegisterSlot(false, true),
+        new RegisterSlot(false, true),
+        new RegisterSlot(true,  false)
+    };
+
+    slots[0]->setValidArguments({0,1,2});
+    slots[1]->setValidArguments({0,1,2});
+    slots[2]->setValidArguments({0,1,2});
+
+    auto value_list = vector<unsigned>({0,0,0});
+
+    auto mapped = canonicalMappingLive(slots, value_list, 1);
+
+    BOOST_REQUIRE(mapped.second == true);
+    BOOST_REQUIRE(mapped.first == vector<unsigned>({0,0,0}));
+}
+
+BOOST_AUTO_TEST_CASE( liveness_mapping_tests_2 )
+{
+    vector<RegisterSlot *> slots = {
+        new RegisterSlot(false, true),
+        new RegisterSlot(false, true),
+        new RegisterSlot(true,  false)
+    };
+
+    slots[0]->setValidArguments({0,1,2});  // read
+    slots[1]->setValidArguments({0,1,2});  // read
+    slots[2]->setValidArguments({0,1,2});  // write
+
+    auto value_list = vector<unsigned>({0,1,2});
+
+    auto mapped = canonicalMappingLive(slots, value_list, 1);
+
+    BOOST_REQUIRE(mapped.second == false);
+}
+
+BOOST_AUTO_TEST_CASE( liveness_mapping_tests_3 )
+{
+    vector<RegisterSlot *> slots = {
+        new RegisterSlot(false, true),
+        new RegisterSlot(false, true),
+        new RegisterSlot(true,  false)
+    };
+
+    slots[0]->setValidArguments({0,1,2});  // read
+    slots[1]->setValidArguments({0,1,2});  // read
+    slots[2]->setValidArguments({0,1,2});  // write
+
+    auto value_list = vector<unsigned>({1,1,0});
+
+    auto mapped = canonicalMappingLive(slots, value_list, 1);
+
+    BOOST_REQUIRE(mapped.second == true);
+    BOOST_REQUIRE(mapped.first == vector<unsigned>({0,0,1}));
+}
+
+BOOST_AUTO_TEST_CASE( liveness_mapping_tests_4 )
+{
+    vector<RegisterSlot *> slots = {
+        new RegisterSlot(false, true),
+        new RegisterSlot(false, true),
+        new RegisterSlot(true,  true)
+    };
+
+    slots[0]->setValidArguments({0,1,2});  // read
+    slots[1]->setValidArguments({0,1,2});  // read
+    slots[2]->setValidArguments({0,2});  // write
+
+    auto value_list = vector<unsigned>({1,1,0});
+
+    pair<vector<unsigned>,bool> mapped;
+
+    mapped = canonicalMappingLive(slots, value_list, 1);
+
+    BOOST_REQUIRE(mapped.second == false);
+
+    mapped = canonicalMappingLive(slots, value_list, 2);
+
+    BOOST_REQUIRE(mapped.second == true);
+    BOOST_REQUIRE(mapped.first == vector<unsigned>({0,0,2}));
+}
+
+BOOST_AUTO_TEST_CASE( liveness_mapping_tests_5 )
+{
+    vector<RegisterSlot *> slots = {
+        new RegisterSlot(true,  false),
+        new RegisterSlot(false, true),
+        new RegisterSlot(false, true)
+    };
+
+    slots[0]->setValidArguments({0,1,2});  // write
+    slots[1]->setValidArguments({0,1,2});  // read
+    slots[2]->setValidArguments({0,1,2});  // read
+
+    auto value_list = vector<unsigned>({0,1,0});
+
+    auto mapped = canonicalMappingLive(slots, value_list, 0);
+
+    BOOST_REQUIRE(mapped.second == false);
+}
+
+BOOST_AUTO_TEST_CASE( liveness_standard_tests_1 )
+{
+    vector<Slot *> slots = {
+        new RegisterSlot(true, false, {0,1,2}),  // w
+        new RegisterSlot(false, true, {0,1,2}),  // r
+        new RegisterSlot(false, true, {0,1,2})}; // r
+
+    canonicalIteratorLiveness c_iter(slots, 1);
+
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+    c_iter.next();
+}
+
+BOOST_AUTO_TEST_CASE( liveness_standard_tests_2 )
+{
+    vector<Slot *> slots = {
+        new RegisterSlot(true, false, {0,1,2}),  // w
+        new RegisterSlot(false, true, {0,1,2}),  // r
+        new RegisterSlot(false, true, {0,1,2})}; // r
+
+    canonicalIteratorLiveness c_iter(slots, 2);
+
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,2}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+    c_iter.next();
+}
+
+BOOST_AUTO_TEST_CASE( liveness_standard_tests_3 )
+{
+    vector<Slot *> slots = {
+        new RegisterSlot(true, false, {0,1,2}),  // w
+        new RegisterSlot(true, false, {0,1,2}),  // w
+        new RegisterSlot(false, true, {0,1,2})}; // r
+
+    canonicalIteratorLiveness c_iter(slots, 1);
+
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,2}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+    c_iter.next();
+}
+
+BOOST_AUTO_TEST_CASE( liveness_standard_tests_4 )
+{
+    vector<Slot *> slots = {
+        new RegisterSlot(true, false, {0,1,2}),  // w
+        new RegisterSlot(false, true, {0,1,2}),  // r
+        new RegisterSlot(false, true, {0,1,2}),  // r
+        new RegisterSlot(false, true, {0,1,2})}; // r
+
+    canonicalIteratorLiveness c_iter(slots, 1);
+
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1,1}));
+    c_iter.next();
+}
+
+BOOST_AUTO_TEST_CASE( liveness_standard_tests_5 )
+{
+    vector<Slot *> slots = {
+        new RegisterSlot(true, false, {0,1,2}),  // w
+        new RegisterSlot(false, true, {0,1,2}),  // r
+        new RegisterSlot(false, true, {0,1,2}),  // r
+        new RegisterSlot(false, true, {0,1,2})}; // r
+
+    canonicalIteratorLiveness c_iter(slots, 2);
+
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1,2}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0,2}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1,2}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,2,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,2,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,2,2}));
+    c_iter.next();
+}

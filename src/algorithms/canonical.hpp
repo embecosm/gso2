@@ -68,22 +68,23 @@ private:
     std::vector<std::pair<unsigned,unsigned>> commute_list;
 };
 
-class canonicalIteratorLiveness
+class canonicalIteratorLiveness : public canonicalIterator
 {
 public:
-    canonicalIteratorLiveness(std::vector<Slot*> &slotlist_);
+    canonicalIteratorLiveness(std::vector<Slot*> &slotlist_, unsigned live_registers);
 
     bool next();
 private:
-    const std::vector<Slot*> &slotlist;
-    std::vector<std::vector<unsigned>> skips;
-    std::vector<std::pair<unsigned,unsigned>> commute_list;
-    std::vector<unsigned> live_in, live_out;
+    unsigned n_live;
 };
 
 std::vector<unsigned> possibleRegisters(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> &values, unsigned loc);
 
 std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> values = {},
+    std::vector<std::vector<unsigned>> *class_intersections=nullptr);
+
+std::pair<std::vector<unsigned>,bool> canonicalMappingLive(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> values,
+    unsigned     live_registers,
     std::vector<std::vector<unsigned>> *class_intersections=nullptr);
 
 #endif
