@@ -3,6 +3,12 @@ defaults:
     - type: "RegisterSlot"
       modifier: "rw"
       class: "ALL_REGISTERS"
+machine:
+  register_slot_type: "AVRRegisterSlot"
+  register_class_type: "AvrRegisterClasses"
+  machine_type_name: "AvrMachine"
+  class_prefix: "Avr_"
+  register_type: "uint8_t"
 instructions:
   add:
     operands:
