@@ -541,6 +541,11 @@ pair<vector<unsigned>,bool> canonicalMappingLive(vector<RegisterSlot*> &slotlist
     }
     mapping_count.resize(largest_reg+1);
 
+    vector<bool> current_live_reg, current_read_reg;
+
+    current_live_reg.resize(largest_reg+1);
+    current_read_reg.resize(largest_reg+1);
+
     if(values.size() != slotlist.size())
     {
         values.clear();
@@ -612,11 +617,6 @@ pair<vector<unsigned>,bool> canonicalMappingLive(vector<RegisterSlot*> &slotlist
             // Once we have the intersections of the classes, we do not want
             // the registers which we have already remapped. Copy them into a
             // new vector, so we can leave the precomputed values untouched.
-
-            vector<bool> current_live_reg, current_read_reg;
-
-            current_live_reg.resize(largest_reg+1);
-            current_read_reg.resize(largest_reg+1);
 
             // Calculate which registers are live, and which are read from,
             // this is a representation of the use and def sets.
