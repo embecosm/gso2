@@ -69,6 +69,8 @@ int main(int argc, char *argv[])
             else if(dynamic_cast<ConstantSlot*>(slot) != 0)
             {
                 constant_slots.push_back((ConstantSlot*)slot);
+
+                ((ConstantSlot*)slot)->iteratorSkip(true);
                 slot->setValue(0);
             }
             else

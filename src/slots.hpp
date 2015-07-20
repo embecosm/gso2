@@ -201,6 +201,7 @@ public:
     {
         ranges = ranges_;
         current_range = 0;
+        lossy = false;
     }
 
     virtual void reset()
@@ -215,32 +216,102 @@ public:
     bool next()
     {
         assert(ranges.size() > 0);
-        if(value >= ranges[current_range].second)
+
+        if(lossy)
         {
+            // Iterate over the lossy values instead.
             current_range++;
-            if(current_range >= ranges.size())
+            if(current_range >= lossy_values.size())
             {
                 current_range = 0;
-                value = ranges[current_range].first;
+                value = lossy_values[0];
                 return false;
             }
             else
             {
-                value = ranges[current_range].first;
+                value = lossy_values[current_range];
                 return true;
             }
         }
         else
         {
-            value++;
-            return true;
+            if(value >= ranges[current_range].second)
+            {
+                current_range++;
+                if(current_range >= ranges.size())
+                {
+                    current_range = 0;
+                    value = ranges[current_range].first;
+                    return false;
+                }
+                else
+                {
+                    value = ranges[current_range].first;
+                    return true;
+                }
+            }
+            else
+            {
+                value++;
+                return true;
+            }
         }
+    }
+
+    /*! Enable skipping of infrequently used constants.
+
+        Some constants are used more frequently than others in programs. The
+        constant enabled by setting the lossy setting include all in the range
+        0 to 16, 2^n for all n, and 2^n - 1 for all n.
+
+        @param lossy_  Whether to enable to lossy iteration of constants or
+                       not.
+    */
+    void iteratorSkip(bool lossy_)
+    {
+        lossy = lossy_;
+
+        // Precompute the lossy values and store them.
+        lossy_values.clear();
+
+        for(auto &p: ranges)
+        {
+            if(p.first < 16)
+            {
+                for(unsigned i = p.first; i < 16 && i < p.second; ++i)
+                    lossy_values.push_back(i);
+            }
+
+            for(unsigned i = 4, v = 16; i < 32; ++i, v <<= 1)
+            {
+                // 2^n
+                if(v >= p.first && v <= p.second)
+                {
+                    lossy_values.push_back(v);
+                }
+                // 2^n - 1
+                if(v-1 >= p.first && v-1 <= p.second)
+                {
+                    lossy_values.push_back(v-1);
+                }
+            }
+        }
+
+        current_range = 0;
     }
 
 private:
     // Ranges are inclusive
     std::vector<std::pair<unsigned, unsigned>> ranges;
+
+    bool lossy;
+    std::vector<unsigned> lossy_values;
+
+    // Current range is used to describe which range is begin picked from if
+    // we are not iterating lossily, otherwise it is the index of the current
+    // value in the lossy_values list.
     unsigned current_range;
+
 };
 
 #endif
