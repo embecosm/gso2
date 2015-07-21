@@ -21,7 +21,7 @@ public:
 
         @return The value stored by the slot.
     */
-    virtual unsigned getValue()
+    virtual uint64_t getValue()
     {
         return value;
     }
@@ -30,7 +30,7 @@ public:
 
         @param val  Set the value stored to val.
     */
-    virtual void setValue(unsigned val)
+    virtual void setValue(uint64_t val)
     {
         value = val;
     }
@@ -66,7 +66,7 @@ public:
     }
 
 protected:
-    unsigned value;
+    uint64_t value;
 
     /*! A conversion method, since the friend stream operators cannot be
         virtual. The method converts the slot's value to a string which
@@ -197,7 +197,7 @@ class ConstantSlot : public Slot
 public:
     // TODO: validate that the ranges are strictly ordered, i.e., they are in
     //  order and non-overlapping
-    ConstantSlot(std::vector<std::pair<unsigned, unsigned>> ranges_)
+    ConstantSlot(std::vector<std::pair<uint64_t, uint64_t>> ranges_)
     {
         ranges = ranges_;
         current_range = 0;
@@ -278,11 +278,12 @@ public:
         {
             if(p.first < 16)
             {
-                for(unsigned i = p.first; i < 16 && i < p.second; ++i)
+                for(uint64_t i = p.first; i < 16 && i < p.second; ++i)
                     lossy_values.push_back(i);
             }
 
-            for(unsigned i = 4, v = 16; i < 32; ++i, v <<= 1)
+            uint64_t v = 16;
+            for(unsigned i = 4; i < sizeof(uint64_t)*8; ++i, v <<= 1)
             {
                 // 2^n
                 if(v >= p.first && v <= p.second)
@@ -302,10 +303,10 @@ public:
 
 private:
     // Ranges are inclusive
-    std::vector<std::pair<unsigned, unsigned>> ranges;
+    std::vector<std::pair<uint64_t, uint64_t>> ranges;
 
     bool lossy;
-    std::vector<unsigned> lossy_values;
+    std::vector<uint64_t> lossy_values;
 
     // Current range is used to describe which range is begin picked from if
     // we are not iterating lossily, otherwise it is the index of the current

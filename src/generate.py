@@ -132,6 +132,7 @@ machine = obj["machine"]
 register_type = machine["register_type"]
 register_slot_type = machine["register_slot_type"]
 register_class_type = machine["register_class_type"]
+constant_slot_type = machine["constant_slot_type"]
 class_prefix = machine["class_prefix"]
 machine_type_name = machine["machine_type_name"]
 
@@ -171,7 +172,7 @@ with open(arguments["OUTPUTFILE"], "w") as fout:
                     ranges.append("{{{}, {}}}".format(r["lower"], r["upper"]))
 
                 reg_read += "{} c{} = slots[{}]->getValue();\n".format(register_type, chr(65+i), i)
-                slots.append("new ConstantSlot({{{}}})".format(", ".join(ranges)))
+                slots.append("new {}({{{}}})".format(constant_slot_type, ", ".join(ranges)))
 
         slots = ", ".join(slots)
         n_slots = len(operands)

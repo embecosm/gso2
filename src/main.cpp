@@ -10,20 +10,22 @@
 
 using namespace std;
 
+typedef AvrMachine MachineType;
+
 int main(int argc, char *argv[])
 {
     // TODO: options
 
     // An example goal function. Eventually we should read in a sequence of
     // instructions and use this as a goal.
-    function<void(AvrMachine&)> goal(
-        [](AvrMachine &mach){
+    function<void(MachineType&)> goal(
+        [](MachineType &mach){
             // mach.setRegisterValue(1, (mach.getRegisterValue(1)+37)&0xFF);
             mach.setRegisterValue(0, 0x10);
         }
     );
 
-    AvrMachine mach, mach_expected, mach_initial;
+    MachineType mach, mach_expected, mach_initial;
 
     // Compute a test state - for quick discarding of invalid sequences.
     mach_expected.initialiseRandom();
@@ -49,7 +51,7 @@ int main(int argc, char *argv[])
             insns.push_back((*factory)());
 
         vector<Slot*> slots;
-        vector<ConstantSlot*> constant_slots;
+        vector<MachineType::ConstantSlot*> constant_slots;
 
         // Get a list of all of the slots in the instruction list
         for(auto insn: insns)
@@ -66,11 +68,11 @@ int main(int argc, char *argv[])
                 auto va = static_cast<RegisterSlot*>(slot)->getValidArguments();
                 slot->setValue(*min_element(va.begin(), va.end()));
             }
-            else if(dynamic_cast<ConstantSlot*>(slot) != 0)
+            else if(dynamic_cast<MachineType::ConstantSlot*>(slot) != 0)
             {
-                constant_slots.push_back((ConstantSlot*)slot);
+                constant_slots.push_back((MachineType::ConstantSlot*)slot);
 
-                ((ConstantSlot*)slot)->iteratorSkip(true);
+                ((MachineType::ConstantSlot*)slot)->iteratorSkip(true);
                 slot->setValue(0);
             }
             else
@@ -92,7 +94,7 @@ int main(int argc, char *argv[])
                 // correct.
                 if(testEquivalence(insns, slots, mach_initial, mach_expected))
                 {
-                    AvrMachine mach_test;
+                    MachineType mach_test;
 
                     bool correct = testEquivalenceMultiple(insns, slots, goal);
 
