@@ -18,7 +18,7 @@ instructions:
     implementation: |
       rA = rA + rB;
     print_name: "add"
-    format: "add %s, %s"
+    format: "add {}, {}"
   sub:
     operands:
       - modifier: "rw"
@@ -26,7 +26,7 @@ instructions:
     implementation: |
       rA = rA - rB;
     print_name: "sub"
-    format: "sub %s, %s"
+    format: "sub {}, {}"
   eor:
     operands:
       - modifier: "rw"
@@ -34,7 +34,7 @@ instructions:
     implementation: |
       rA = rA ^ rB;
     print_name: "eor"
-    format: "eor %s, %s"
+    format: "eor {}, {}"
   and:
     operands:
       - modifier: "rw"
@@ -42,7 +42,7 @@ instructions:
     implementation: |
       rA = rA & rB;
     print_name: "and"
-    format: "and %s, %s"
+    format: "and {}, {}"
   mul:
     operands:
       - modifier: "r"
@@ -55,28 +55,28 @@ instructions:
       rC = (rA * rB) & 0xFF;
       rD = (rA * rB) >> 8;
     print_name: "mul"
-    format: "mul %s, %s"
+    format: "mul {}, {}"
   inc:
     operands:
       - modifier: "rw"
     implementation: |
       rA = rA + 1;
     print_name: "inc"
-    format: "inc %s"
+    format: "inc {}"
   dec:
     operands:
       - modifier: "rw"
     implementation: |
       rA = rA - 1;
     print_name: "dec"
-    format: "dec %s"
+    format: "dec {}"
   swap:
     operands:
       - modifier: "rw"
     implementation: |
       rA = (rA >> 4) | ((rA << 4) & 0xFF);
     print_name: "swap"
-    format: "swap %s"
+    format: "swap {}"
   ldi:
     operands:
       - type: "RegisterSlot"
@@ -88,7 +88,7 @@ instructions:
     implementation: |
       rA = cB;
     print_name: "ldi"
-    format: "ldi %s, %s"
+    format: "ldi {}, {}"
   movw:
     operands:
       - type: "RegisterSlot"
@@ -103,7 +103,7 @@ instructions:
       rA = rB;
       mach->setRegisterValue(slots[0]->getValue()+1, rB_p);
     print_name: "movw"
-    format: "movw %s, %s"
+    format: "movw {}, {}"
   adiw:
     operands:
       - type: "RegisterSlot"
@@ -123,4 +123,4 @@ instructions:
       rA = tmp & 0xFF;
       mach->setRegisterValue(slots[0]->getValue()+1, (tmp >> 8)&0xFF);
     print_name: "adiw"
-    format: "adiw %s, %s"
+    format: "adiw {}, {}"

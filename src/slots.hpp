@@ -21,7 +21,7 @@ public:
 
         @return The value stored by the slot.
     */
-    virtual uint64_t getValue()
+    virtual uint64_t getValue() const
     {
         return value;
     }
@@ -48,7 +48,7 @@ public:
         @param os  The stream to output to.
         @param d   The slot whose value to output.
     */
-    friend std::ostream &operator<<(std::ostream &os, Slot &d)
+    friend std::ostream &operator<<(std::ostream &os, const Slot &d)
     {
         return os << d.toString();
     }
@@ -60,7 +60,7 @@ public:
         @param os  The stream to output to.
         @param d   The slot whose value to output.
     */
-    friend std::ostream &operator<<(std::ostream &os, Slot *d)
+    friend std::ostream &operator<<(std::ostream &os, const Slot *d)
     {
         return os << d->toString();
     }
@@ -74,7 +74,7 @@ protected:
 
         @return The printable string of the slot's value.
     */
-    virtual std::string toString()
+    virtual std::string toString() const
     {
         return std::to_string(getValue());
     }
@@ -177,7 +177,7 @@ private:
     std::vector<unsigned> validArguments;
 
 protected:
-    virtual std::string toString()
+    virtual std::string toString() const
     {
         return "r" + std::to_string(getValue());
     }

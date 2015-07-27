@@ -8,6 +8,7 @@ from docopt import docopt
 import yaml
 from copy import deepcopy
 import collections
+import string
 
 arguments = docopt(__doc__)
 
@@ -44,13 +45,13 @@ public:
 
     std::string toString()
     {{
-        std::string output;
-        iof::stringizer ss("{format}");
+        return fmt::format("{format}" {print_slotlist_str});
+    }}
 
-        for(unsigned i = 0; i < iof::countMarkers("{format}"); ++i)
-        {{
-            ss << "S" + std::to_string(i+1);
-        }}
+    std::string toString(Slot** slots)
+    {{
+        return fmt::format("{format}" {print_slotlist});
+    }}
 
         return ss;
     }}
@@ -176,6 +177,12 @@ with open(arguments["OUTPUTFILE"], "w") as fout:
 
         slots = ", ".join(slots)
         n_slots = len(operands)
+
+        placeholders = [k for k in string.Formatter().parse(format) if k[1] is not None]
+        n_placeholders = len(placeholders)
+
+        print_slotlist = "".join([", *slots[{}]".format(i) for i in range(n_placeholders)])
+        print_slotlist_str = "".join([", \"S{}\"".format(i) for i in range(n_placeholders)])
 
         s = template.format(**locals())
 

@@ -1,7 +1,7 @@
 
 LATEXSRC=doc/design.tex
 LATEXDOC=$(LATEXSRC:.tex=.pdf)
-SOURCES=src/algorithms/*.cpp src/utility.cpp
+SOURCES=src/algorithms/*.cpp src/utility.cpp libraries/cppformat/format.cc
 SOURCES_HPP=src/*.hpp src/*/*.hpp
 MAINSOURCE=src/main.cpp
 TESTSOURCES=tests/canonical_slots.cpp tests/avr_instruction.cpp tests/bruteforce.cpp tests/test.cpp tests/slots.cpp tests/utility.cpp tests/frontend.cpp

@@ -9,6 +9,8 @@
 #include <functional>
 #include <string.h>
 
+#include <cppformat/format.h>
+
 #include <iof/fmtr.hpp>
 #include <iof/stringizer.hpp>
 
