@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include <functional>
 
 template <typename T>
 class Combinations
@@ -67,5 +68,10 @@ class Slot;
 
 std::string print(const std::vector<Instruction *> &insns,
     std::vector<Slot*> &slots);
+
+
+std::pair<std::vector<Instruction*>, std::vector<Slot*>>
+    parseInstructionList(std::string input, std::vector<std::function<Instruction *()>> factories);
+
 
 #endif

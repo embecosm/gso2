@@ -53,26 +53,30 @@ public:
         return fmt::format("{format}" {print_slotlist});
     }}
 
-        return ss;
-    }}
-
-    std::string toString(Slot** slots)
-    {{
-        std::string output;
-        iof::stringizer ss("{format}");
-
-        for(unsigned i = 0; i < iof::countMarkers("{format}"); ++i)
-        {{
-            ss << slots[i];
-        }}
-
-        return ss;
-    }}
-
     std::string getName()
     {{
         return "{print_name}";
     }}
+
+    bool parse(std::string input, std::vector<Slot*> &slotlist)
+    {{
+        auto slots = getSlots();
+
+        bool success = cppinput::input(input, "{format}" {print_slotlist});
+
+        if(success)
+        {{
+            slotlist.insert(slotlist.end(), slots.begin(), slots.end());
+        }}
+        else
+        {{
+            for(auto slot: slots)
+                delete slot;
+        }}
+
+        return success;
+    }}
+
 }};
 """
 

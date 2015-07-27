@@ -25,7 +25,7 @@ public:
     virtual std::string toString(Slot **slots) { return "";};
     virtual std::string getName() { return "";};
 
-    // virtual Uops generateUops() = 0;
+    virtual bool parse(std::string input, std::vector<Slot*> &slotlist) { return false;};
 };
 
 class TargetMachineBase

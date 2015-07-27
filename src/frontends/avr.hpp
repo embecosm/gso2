@@ -11,6 +11,8 @@
 
 #include <cppformat/format.h>
 
+#include <cppinput/cppinput.hpp>
+
 #include <iof/fmtr.hpp>
 #include <iof/stringizer.hpp>
 

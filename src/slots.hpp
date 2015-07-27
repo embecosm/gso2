@@ -65,6 +65,11 @@ public:
         return os << d->toString();
     }
 
+    friend std::istream &operator>>(std::istream &in, Slot &d)
+    {
+        return d.input(in);
+    }
+
 protected:
     uint64_t value;
 
@@ -77,6 +82,18 @@ protected:
     virtual std::string toString() const
     {
         return std::to_string(getValue());
+    }
+
+    virtual std::istream &input(std::istream &in)
+    {
+        unsigned v;
+
+        in >> v;
+
+        if(!in.fail())
+            setValue(v);
+
+        return in;
     }
 };
 
@@ -180,6 +197,22 @@ protected:
     virtual std::string toString() const
     {
         return "r" + std::to_string(getValue());
+    }
+
+    virtual std::istream &input(std::istream &in)
+    {
+        unsigned v;
+        char r;
+
+        in >> r >> v;
+
+        if(!in.fail() && r != 'r')
+            in.setstate(std::ios::failbit);
+
+        if(!in.fail())
+            setValue(v);
+
+        return in;
     }
 };
 
