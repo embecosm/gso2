@@ -9,6 +9,7 @@ TESTS=$(TESTSOURCES:.cpp=.test)
 GENERATEDSOURCES=src/frontends/avr_gen.hpp
 CFLAGS= -std=c++11 -Wall -g -O3 -I libraries
 CC=g++-4.9
+MPICC=mpic++
 
 .PHONY=test all
 
@@ -20,6 +21,10 @@ omega: $(SOURCES) $(GENERATEDSOURCES) $(MAINSOURCE) $(SOURCES_HPP)
 
 omega_slow: $(SOURCES) $(GENERATEDSOURCES) $(MAINSOURCE) $(SOURCES_HPP)
 	$(CC) $(CFLAGS) $(SOURCES) $(MAINSOURCE) -o omega_slow -O0
+
+omega_parallel: $(SOURCES) $(GENERATEDSOURCES) src/main_parallel.cpp $(SOURCES_HPP)
+	$(MPICC) $(CFLAGS) $(SOURCES) src/main_parallel.cpp -o omega_parallel
+
 
 %_gen.hpp: %.yml src/generate.py
 	python src/generate.py $< $@
