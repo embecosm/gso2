@@ -117,10 +117,11 @@ public:
 
         std::vector<unsigned> rm(reg_map, reg_map+n_reg);
         Combinations<unsigned> comb_iter(rm, n_reg_other);
+        std::vector<unsigned> reg_list;
 
         do
         {
-            auto reg_list = comb_iter.getSelection();
+            comb_iter.getSelection(reg_list);
 
             do
             {

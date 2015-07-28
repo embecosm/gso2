@@ -20,18 +20,18 @@ public:
 
     // TODO: should we return the actual values here, rather than the index of
     // the value?
-    std::vector<unsigned> getSelection()
+    void getSelection(std::vector<unsigned> &sel)
     {
         uint64_t val = current;
-        std::vector<unsigned> sel;
+        unsigned current_idx = 0;
+
+        sel.resize(n);
 
         for(unsigned i = 0; i < values.size(); ++i, val >>= 1)
         {
             if(val & 1)
-                sel.push_back(i);
+                sel[current_idx++] = i;
         }
-
-        return sel;
     }
 
     bool next()
