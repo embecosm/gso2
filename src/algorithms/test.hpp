@@ -7,8 +7,8 @@
 #include "../slots.hpp"
 
 template <typename Machine>
-bool testEquivalence(std::vector<Instruction *> insns, std::vector<Slot *> slots,
-    Machine initial, Machine expected)
+bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slots,
+    Machine &initial, Machine &expected)
 {
     auto current_slot = &slots[0];
     Machine test_state;
@@ -25,8 +25,8 @@ bool testEquivalence(std::vector<Instruction *> insns, std::vector<Slot *> slots
 }
 
 template <typename Machine>
-bool testEquivalence(std::vector<Instruction *> insns, std::vector<Slot *> slots,
-    Machine initial, std::function<void(Machine&)> transform)
+bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slots,
+    Machine &initial, std::function<void(Machine&)> transform)
 {
     Machine transformed = initial;
     transform(transformed);
@@ -35,8 +35,8 @@ bool testEquivalence(std::vector<Instruction *> insns, std::vector<Slot *> slots
 }
 
 template <typename Machine>
-bool testEquivalence(std::vector<Instruction *> insns, std::vector<Slot *> slots,
-    std::vector<Instruction *> reference_insns, std::vector<Slot *> reference_slots)
+bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slots,
+    std::vector<Instruction *> &reference_insns, std::vector<Slot *> &reference_slots)
 {
     // First do the instruction sequence under test
     auto current_slot = &slots[0];
@@ -66,8 +66,8 @@ bool testEquivalence(std::vector<Instruction *> insns, std::vector<Slot *> slots
 }
 
 template <typename Machine>
-bool testEquivalenceMultiple(std::vector<Instruction *> insns,
-    std::vector<Slot *> slots, std::vector<Instruction *> reference_insns,
+bool testEquivalenceMultiple(std::vector<Instruction *> &insns,
+    std::vector<Slot *> &slots, std::vector<Instruction *> reference_insns,
     std::vector<Slot *> reference_slots, unsigned number=100)
 {
     for(unsigned i = 0; i < number; ++i)
@@ -80,8 +80,8 @@ bool testEquivalenceMultiple(std::vector<Instruction *> insns,
 }
 
 template <typename Machine>
-bool testEquivalenceMultiple(std::vector<Instruction *> insns,
-    std::vector<Slot *> slots, std::function<void(Machine&)> transform,
+bool testEquivalenceMultiple(std::vector<Instruction *> &insns,
+    std::vector<Slot *> &slots, std::function<void(Machine&)> transform,
     unsigned number=100)
 {
     for(unsigned i = 0; i < number; ++i)
