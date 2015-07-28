@@ -10,6 +10,16 @@ using namespace std;
 canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
 : canonicalIteratorBasic(slotlist_), canonical(slotlist.size())
 {
+    // Sort our list of slots by valid arguments size. This can massively
+    // speed up the enumeration of some register classes, based on the
+    // observation that the remapping function can 'early out' if it runs out
+    // of register classes. Therefore the smallest classes should go first.
+    sort(slotlist.begin(), slotlist.end(),
+        [] (RegisterSlot *a, RegisterSlot *b) {
+            return a->getValidArguments().size() < b->getValidArguments().size();
+        }
+        );
+
     // Find number of different register values possible
     std::set<int> all;
     int largest_classid=0;
