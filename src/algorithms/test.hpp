@@ -54,7 +54,7 @@ bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slo
     }
 
     // Execute the reference sequence
-    current_slot = &slots[0];
+    current_slot = &reference_slots[0];
 
     for(auto insn: reference_insns)
     {

@@ -74,6 +74,28 @@ public:
     unsigned add_extra;
 };
 
+class TestInstructionMove: public Instruction
+{
+    public:
+        TestInstructionMove()
+        {
+        }
+
+        virtual unsigned execute(TargetMachineBase *_mach, Slot **slots)
+        {
+            TestMachine *mach = static_cast<TestMachine*>(_mach);
+
+            mach->setRegister(slots[0], mach->getRegister(slots[1]));
+
+            return 2;
+        }
+
+        virtual unsigned getNumberOfSlots()
+        {
+            return 2;
+        }
+};
+
 BOOST_AUTO_TEST_CASE( machine_state_tests )
 {
     {
@@ -194,8 +216,34 @@ BOOST_AUTO_TEST_CASE( instruction_sequences_tests )
         // sum r0, r0, r0, r0
         // Overall: r0 = r0 * 4
         ref_insns.push_back(new TestInstruction(4, 0));
-        ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 1));
         ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+
+        BOOST_REQUIRE(testEquivalence<TestMachine>(insns,slots,ref_insns,ref_slots) == true);
+        BOOST_REQUIRE(testEquivalenceMultiple<TestMachine>(insns,slots,ref_insns,ref_slots) == true);
+    }
+
+    {
+        vector<Instruction*> insns;
+        vector<Slot*> slots;
+        vector<Instruction*> ref_insns;
+        vector<Slot*> ref_slots;
+
+        // sum r0, r0
+        // move r1, r0
+        // Overall: r0 = r1 * 2
+        insns.push_back(new TestInstruction(2, 0));
+        slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+        insns.push_back(new TestInstructionMove());
+        slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 1));
+        slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
+
+        // sum r0, r0
+        // Overall: r0 = r0 * 2
+        ref_insns.push_back(new TestInstruction(2, 0));
         ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
         ref_slots.push_back(new RegisterSlot(true, true, {0,1,2,3}, 0));
 
