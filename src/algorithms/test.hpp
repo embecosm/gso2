@@ -7,19 +7,27 @@
 #include "../slots.hpp"
 
 template <typename Machine>
+void executeSequence(std::vector<Instruction *> &insns, std::vector<Slot *> &slots,
+    Machine &state)
+{
+    auto current_slot = &slots[0];
+
+    for(auto insn: insns)
+    {
+        auto n = insn->execute(&state, current_slot);
+        current_slot += n;
+    }
+}
+
+template <typename Machine>
 bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slots,
     Machine &initial, Machine &expected)
 {
-    auto current_slot = &slots[0];
     Machine test_state;
 
     test_state = initial;
 
-    for(auto insn: insns)
-    {
-        auto n = insn->execute(&test_state, current_slot);
-        current_slot += n;
-    }
+    executeSequence(insns, slots, test_state);
 
     return test_state.containsState(expected);
 }
@@ -39,28 +47,16 @@ bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slo
     std::vector<Instruction *> &reference_insns, std::vector<Slot *> &reference_slots)
 {
     // First do the instruction sequence under test
-    auto current_slot = &slots[0];
-
     Machine test_state;
     Machine reference_state;
 
     test_state.initialiseRandom();
     reference_state = test_state;
 
-    for(auto insn: insns)
-    {
-        auto n = insn->execute(&test_state, current_slot);
-        current_slot += n;
-    }
+    executeSequence(insns, slots, test_state);
 
     // Execute the reference sequence
-    current_slot = &reference_slots[0];
-
-    for(auto insn: reference_insns)
-    {
-        auto n = insn->execute(&reference_state, current_slot);
-        current_slot += n;
-    }
+    executeSequence(reference_insns, reference_slots, reference_state);
 
     return test_state.containsState(reference_state);
 }
