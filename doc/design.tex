@@ -93,13 +93,78 @@ The toolkit contains algorithms for each of the stages. Below is a small (incomp
 
 The following sections describe in detail the components available and their intended use.
 
+The frontend is the interface to the processor, and holds all the state that the instructions modify. For example, this will include the registers, flags and memory, and provide an interface to to reading and writing these items.
+
+The frontend is operated on by instructions, which implement the functionality of individual instruction, and specify properties about the instruction. Each instruction accepts a number of \textit{slots}, which represent items to be filled in by the superoptimizer. Typically, these are registers or constants. The slots are subclassed into multiple types, representing the type of value they contain.
+
 \subsection{Frontends}
 
-\todo[inline]{Discussion of machine types}
-\todo[inline]{what is needed from the instructions}
-\todo[inline]{autogeneration of instructions}
+
+The frontend holds the processor's state --- generally an interface to the registers and memory the processor can access. The instructions all operate on this state, modifying it as per the instruction semantics. All frontends derive from \texttt{TargetMachineBase}, however, \texttt{TargetMachine<RegisterType, NumberOfRegisters>} is generally a more useful base class. This base class defines a number of functions necessary to the class to be used with other functions available.
+
+Important functions provided by \texttt{TargetMachine<...>}:
+\begin{description}
+    \item[\texttt{setRegister}, \texttt{getRegister}.] These functions each accept a slot object, read the slots value and set the corresponding register. These functions keep track of whether the register has been written to or read from. These status bits can be used keep track of what registers are used by an instruction sequence.
+    \item[\texttt{setRegisterValue}, \texttt{getRegisterValue}.] As above, these functions set a register, however, they set a particular register, which is specified.
+    \item[\texttt{containsState}.] This function checks whether the state passed in as the parameter (\texttt{other}) is contained within the current state. This is performed by checking which registers are written in the \texttt{other} state, and finding a combination of registers with identical values that are written in the current state. This particular function is useful when finding if an instruction sequence has computed a particular result, but when there may be other side effects of that sequence which can be ignored.
+
+    For example, the state \texttt{r0 = 1, r2 = 20} is contained in the state \texttt{r1 = 20, r2 = 5, r3 = 1}.
+
+    The function can optionally provide a list of register mappings between the two states. If the current state does contain the other state, this mapping is a list of register pairs, where the first register is the register number in the current state, and the second is the register number in the \texttt{other} state.
+\end{description}
+
+\subsection{Instructions}
+
+Each instruction the processor can execute is represented as its own class, and C++'s virtual function dispatch can be used to allow simulation of an arbitrary instruction sequence. The instructions themselves hold no state, and instead purely operate on a \texttt{TargetMachineBase}, and a list of \texttt{Slot}s. The instruction provides several methods to enable the execution of the instruction, as well as helper functions, such as returning the number of slots the instruction requires, and input and output of instructions as strings. The key methods are listed below.
+
+\begin{description}
+    \item[\texttt{execute}.] The execute method performs the actual operation of the instructions on the provided machine state, as per the given slot values. This will generally involve reading from registers and writing to other registers.
+    \item[\texttt{getSlots}.] This helper allocates and returns the slots used by the instruction. By requiring the instruction to provide the slots it uses, a list of arbitrary slot types can be constructed and operated upon.
+    \item[\texttt{parse}.] This function provides a way to read in an instruction stream. The function attempts to match the given string to the instruction, and if successful provides a list of the slot values used by the instruction. Thus a sequence of instructions can be built up by repeatedly attempting to parse the instruction, and if the parse is successful the instruction and slots can be stored.
+\end{description}
+
+Since there is a large amount of boilerplate code around the instructions --- one class per instruction --- automatic generation of these classes is provided by a configuration file and a python script. This configuration file lists various details about the processor, and then a list of instructions. Each instruction lists it's slots, with details about their type, and then an implementation section. The implementation section is designed so that the data required is already read, and just the computation can be written. For example, a two-operand add operation for the 8-bit AVR is defined operand as,
+
+\begin{verbatim}
+    add:
+      operands:
+        - modifier: "rw"
+          type: "RegisterSlot"
+          class: "ALL_REGISTERS"
+        - modifier: "r"
+          type: "RegisterSlot"
+          class: "ALL_REGISTERS"
+      implementation: |
+        rA = rA + rB;
+      print_name: "add"
+      format: "add {}, {}"
+\end{verbatim}
+
+\noindent
+The \texttt{operands} section lists the slots (in this case a read-write register, then a read-only register). The registers which are read are automatically set up, so that their values are available in variables \texttt{rA} and \texttt{rB} respectively. Since the first register is also written, it is saved back into the machine state after the implementation section. The entire implementation section forms the generated \texttt{execute} method,
+
+\begin{minted}{c++}
+    unsigned execute(TargetMachineBase *_mach, Slot** slots)
+    {
+        AvrMachine *mach = static_cast<AvrMachine*>(_mach);
+        uint8_t rA = mach->getRegister(slots[0]);
+        uint8_t rB = mach->getRegister(slots[1]);
+
+        rA = rA + rB;
+
+        mach->setRegister(slots[0], rA);
+
+        return 2;
+    }
+\end{minted}
+
+The \texttt{format} section defines the input and output of the instruction. The placeholders, \texttt{\{\}}, consume the slots in the order they were defined in. This is used by the utility functions \texttt{print} and \texttt{parseInstructionList} to allow a list of instruction to be printed or parsed.
 
 \subsection{Slots}
+
+The toolkit provides a base \texttt{Slot} class, as well as two derived classes, \texttt{RegisterSlot} to hold register labels, and \texttt{ConstantSlot} to hold constants used by instructions.
+
+The register slot is most commonly used by instructions, representing which register should be retrieved from the frontend, and holding information about whether the register is read or written, as well as a list of possible registers (i.e. the register class). These properties are exploited by various algorithms to reduce the number of redundant sequences that are tested.
 
 \todo[inline]{concept of slots, different types of slots}
 \todo[inline]{different ways of iterating over these slots}
