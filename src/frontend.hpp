@@ -90,12 +90,29 @@ public:
     // state to the other. This works, even if additional register have been
     // written to in this state, and even if the register labels are not the
     // same.
-    bool containsState(TargetMachine &other)
+
+    // List of which reference register, maps to the other register
+    bool containsState(TargetMachine &other,
+        std::vector<std::pair<unsigned,unsigned>> &mapping)
     {
         RegisterType reg_map[NumberOfRegisters];
         RegisterType reg_map_other[NumberOfRegisters];
         unsigned n_reg=0, n_reg_other=0;
         bool equiv;
+
+        // If a mapping is specified, don't try to find one, just compare
+        if(mapping.size() != 0)
+        {
+            for(auto &map: mapping)
+            {
+                if(registers[map.first] != other.registers[map.second] ||
+                    !register_written[map.first] || !other.register_written[map.second])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
 
         // Fill in the array with the registers that are written
         for(unsigned i = 0; i < NumberOfRegisters; ++i)
@@ -132,13 +149,23 @@ public:
                         equiv = false;
                 }
                 if(equiv)
+                {
+                    for(unsigned i = 0; i < n_reg_other; ++i)
+                        mapping.push_back(std::make_pair(reg_map[reg_list[i]], reg_map_other[i]));
                     break;
+                }
             } while(std::next_permutation(reg_list.begin(), reg_list.end()));
             if(equiv)
                 break;
         } while(comb_iter.next());
 
         return equiv;
+    }
+
+    bool containsState(TargetMachine &other)
+    {
+        std::vector<std::pair<unsigned,unsigned>> temporary;
+        return containsState(other, temporary);
     }
 
 

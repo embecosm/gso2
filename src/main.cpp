@@ -16,21 +16,19 @@ int main(int argc, char *argv[])
 {
     // TODO: options
 
-    // An example goal function. Eventually we should read in a sequence of
-    // instructions and use this as a goal.
-    function<void(MachineType&)> goal(
-        [](MachineType &mach){
-            // mach.setRegisterValue(1, (mach.getRegisterValue(1)+37)&0xFF);
-            mach.setRegisterValue(0, 0x10);
-        }
-    );
+    std::string instruction_str =
+        "add r0, r0\n"
+        "add r0, r0\n"
+        "add r0, r0\n"
+        "add r0, r0\n"
+        "add r0, r0";
+
 
     MachineType mach, mach_expected, mach_initial;
 
     // Compute a test state - for quick discarding of invalid sequences.
     mach_expected.initialiseRandom();
     mach_initial = mach_expected;
-    goal(mach_expected);
 
     // Get a list of functions which will construct an instruction
     auto insn_factories = mach.getInstructionFactories();
@@ -40,8 +38,21 @@ int main(int argc, char *argv[])
     // The number of instructions should eventually be parameterised
     current_factories.push_back(insn_factories.begin());
     current_factories.push_back(insn_factories.begin());
-    // current_factories.push_back(insn_factories.begin());
-    // current_factories.push_back(insn_factories.begin());
+    current_factories.push_back(insn_factories.begin());
+    current_factories.push_back(insn_factories.begin());
+
+    // Get a list of instructions and slots from the string
+    vector<Instruction*> goal_insns;
+    vector<Slot*> goal_slots;
+
+    parseInstructionList(instruction_str, insn_factories, goal_insns, goal_slots);
+
+    // Create a quick test state
+    executeSequence(goal_insns, goal_slots, mach_expected);
+
+    cout << "Goal sequence:\n";
+    cout << print(goal_insns, goal_slots) << endl;
+
 
     do {
         vector<Instruction*> insns;
@@ -87,16 +98,12 @@ int main(int argc, char *argv[])
         {
             do
             {
-                mach = mach_initial;
-
                 // Perform an equivalence test, and if it succeeds, run
                 // multiple tests to work out if the sequence is likely to be
                 // correct.
                 if(testEquivalence(insns, slots, mach_initial, mach_expected))
                 {
-                    MachineType mach_test;
-
-                    bool correct = testEquivalenceMultiple(insns, slots, goal);
+                    bool correct = testEquivalenceMultiple<AvrMachine>(insns, slots, goal_insns, goal_slots);
 
                     if(correct)
                     {

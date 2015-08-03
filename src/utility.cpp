@@ -48,11 +48,10 @@ pair<Instruction*, vector<Slot*>> parseInstruction(string input, vector<function
     return make_pair(nullptr, vector<Slot*>());
 }
 
-pair<vector<Instruction*>, vector<Slot*>> parseInstructionList(string input, vector<function<Instruction *()>> factories)
+bool parseInstructionList(string input, vector<function<Instruction *()>> factories,
+    vector<Instruction*> &insns, vector<Slot*> &slots)
 {
     vector<string> lines;
-    vector<Instruction*> insns;
-    vector<Slot*> slots;
 
     boost::split(lines, input, boost::is_any_of("\n"));
 
@@ -60,15 +59,11 @@ pair<vector<Instruction*>, vector<Slot*>> parseInstructionList(string input, vec
     {
         auto insn_data = parseInstruction(line, factories);
 
-        cout << line << endl;
-
         if(insn_data.first == nullptr)
         {
             cout << "Could not recognise line of input:\n\t" << line << endl;
-            continue;
+            return false;
         }
-
-        cout << insn_data.first->getName() << endl;
 
         auto insn_slots = insn_data.second;
         slots.insert(slots.end(), insn_slots.begin(), insn_slots.end());
@@ -76,9 +71,5 @@ pair<vector<Instruction*>, vector<Slot*>> parseInstructionList(string input, vec
         insns.push_back(insn_data.first);
     }
 
-    cout << insns.size() << " " << slots.size() << endl;
-
-    cout << print(insns, slots) << endl;
-
-    return make_pair(insns, slots);
+    return true;
 }

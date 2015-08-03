@@ -70,8 +70,7 @@ std::string print(const std::vector<Instruction *> &insns,
     std::vector<Slot*> &slots);
 
 
-std::pair<std::vector<Instruction*>, std::vector<Slot*>>
-    parseInstructionList(std::string input, std::vector<std::function<Instruction *()>> factories);
-
+bool parseInstructionList(std::string input, std::vector<std::function<Instruction *()>> factories,
+    std::vector<Instruction*> &insns, std::vector<Slot*> &slots);
 
 #endif
