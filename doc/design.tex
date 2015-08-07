@@ -125,7 +125,7 @@ Each instruction the processor can execute is represented as its own class, and 
 
 Since there is a large amount of boilerplate code around the instructions --- one class per instruction --- automatic generation of these classes is provided by a configuration file and a python script. This configuration file lists various details about the processor, and then a list of instructions. Each instruction lists it's slots, with details about their type, and then an implementation section. The implementation section is designed so that the data required is already read, and just the computation can be written. For example, a two-operand add operation for the 8-bit AVR is defined operand as,
 
-\begin{verbatim}
+\begin{minted}{yaml}
     add:
       operands:
         - modifier: "rw"
@@ -138,7 +138,7 @@ Since there is a large amount of boilerplate code around the instructions --- on
         rA = rA + rB;
       print_name: "add"
       format: "add {}, {}"
-\end{verbatim}
+\end{minted}
 
 \noindent
 The \texttt{operands} section lists the slots (in this case a read-write register, then a read-only register). The registers which are read are automatically set up, so that their values are available in variables \texttt{rA} and \texttt{rB} respectively. Since the first register is also written, it is saved back into the machine state after the implementation section. The entire implementation section forms the generated \texttt{execute} method,
@@ -176,6 +176,14 @@ The register slot is most commonly used by instructions, representing which regi
 
 \todo[inline]{Give an example of constructing a superoptimizer}
 
+\section{Pitfalls}
+
+If many registers are written during the instruction sequence, then there could be many permutations of register combinations to try in \texttt{containsState}. This can occur if flags are used as registers --- since many instructions could set many flags, there may be many registers written, and a lot of combinations to to try.
+
+
+\section{Futher improvements}
+
+Can the \texttt{containsState} function utilise register class information, to speed up the comparison?
 
 \appendix
 \section{Cost functions}
