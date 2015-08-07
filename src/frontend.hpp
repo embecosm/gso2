@@ -175,4 +175,30 @@ protected:
     bool register_read[NumberOfRegisters];
 };
 
+template <typename RegisterType, unsigned NumberOfRegisters, unsigned NumberOfFlags>
+class TargetMachineWithFlags : public TargetMachine<RegisterType, NumberOfRegisters>
+{
+public:
+    TargetMachineWithFlags() : TargetMachine<RegisterType, NumberOfRegisters>()
+    {
+        for(unsigned i = 0; i < NumberOfFlags; ++i)
+            flags[i] = false;
+
+    }
+
+    bool getFlagValue(unsigned reg)
+    {
+        return flags[reg];
+    }
+
+    void setFlagValue(unsigned reg, bool value)
+    {
+        flags[reg] = value;
+    }
+
+protected:
+    bool flags[NumberOfFlags];
+    // TODO possible extension: read and write status for flags
+};
+
 #endif

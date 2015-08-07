@@ -16,9 +16,22 @@ instructions:
       - modifier: "rw"
       - modifier: "r"
     implementation: |
-      rA = rA + rB;
+      uint8_t result = rA + rB;
+      setFlagAdd(mach, result, rA, rB);
+      rA = result;
     print_name: "add"
     format: "add {}, {}"
+  adc:
+    operands:
+      - modifier: "rw"
+      - modifier: "r"
+    implementation: |
+      bool c_flag = mach->getFlagValue(AvrRegisterSlot::C);
+      uint8_t result = rA + rB + c_flag;
+      setFlagAdd(mach, result, rA, rB);
+      rA = result;
+    print_name: "adc"
+    format: "adc {}, {}"
   sub:
     operands:
       - modifier: "rw"
@@ -41,6 +54,7 @@ instructions:
       - modifier: "r"
     implementation: |
       rA = rA & rB;
+      setFlagSVNZ(mach, rA, 0);
     print_name: "and"
     format: "and {}, {}"
   mul:
@@ -54,12 +68,15 @@ instructions:
     implementation: |
       rC = (rA * rB) & 0xFF;
       rD = (rA * rB) >> 8;
+      mach->setFlagValue(AvrRegisterSlot::C, (rD & 0x80) != 0);
+      mach->setFlagValue(AvrRegisterSlot::Z, rC == 0 && rD == 0);
     print_name: "mul"
     format: "mul {}, {}"
   inc:
     operands:
       - modifier: "rw"
     implementation: |
+      setFlagSVNZ(mach, rA + 1, rA == 0x7F);
       rA = rA + 1;
     print_name: "inc"
     format: "inc {}"
@@ -67,6 +84,7 @@ instructions:
     operands:
       - modifier: "rw"
     implementation: |
+      setFlagSVNZ(mach, rA - 1, rA == 0x80);
       rA = rA - 1;
     print_name: "dec"
     format: "dec {}"

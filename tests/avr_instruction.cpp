@@ -38,6 +38,66 @@ BOOST_AUTO_TEST_CASE( instruction_tests )
     ////////////////////////////////////////////////////////////
 }
 
+BOOST_AUTO_TEST_CASE( adc_test_1 )
+{
+    AvrMachine mach, mach_expected;
+    auto insn = new Avr_adc();
+    auto slots = insn->getSlots();
+    slots[0]->setValue(0);
+    slots[1]->setValue(0);
+
+    mach.setRegisterValue(0, 0x10);
+    insn->execute(&mach, &slots[0]);
+    BOOST_CHECK(mach.getRegisterValue(0) == 0x20);
+}
+
+BOOST_AUTO_TEST_CASE( adc_test_2 )
+{
+    AvrMachine mach, mach_expected;
+    auto insn = new Avr_adc();
+    auto slots = insn->getSlots();
+    slots[0]->setValue(0);
+    slots[1]->setValue(0);
+
+    mach.setRegisterValue(0, 0x10);
+    mach.setFlagValue(AvrRegisterSlot::C, 1);
+    insn->execute(&mach, &slots[0]);
+    BOOST_CHECK(mach.getRegisterValue(0) == 0x21);
+}
+
+// Check the flags
+BOOST_AUTO_TEST_CASE( add_test_1 )
+{
+    AvrMachine mach, mach_expected;
+    auto insn = new Avr_add();
+    auto slots = insn->getSlots();
+    slots[0]->setValue(0);
+    slots[1]->setValue(0);
+
+    mach.setRegisterValue(0, 0x90);
+    mach.setFlagValue(AvrRegisterSlot::C, 0);
+    insn->execute(&mach, &slots[0]);
+    BOOST_CHECK(mach.getRegisterValue(0) == 0x20);
+    BOOST_CHECK(mach.getFlagValue(AvrRegisterSlot::C) == 1);
+    BOOST_CHECK(mach.getFlagValue(AvrRegisterSlot::V) == 1);
+}
+
+BOOST_AUTO_TEST_CASE( add_test_2 )
+{
+    AvrMachine mach, mach_expected;
+    auto insn = new Avr_add();
+    auto slots = insn->getSlots();
+    slots[0]->setValue(0);
+    slots[1]->setValue(0);
+
+    mach.setRegisterValue(0, 0xC0);
+    mach.setFlagValue(AvrRegisterSlot::C, 0);
+    insn->execute(&mach, &slots[0]);
+    BOOST_CHECK(mach.getRegisterValue(0) == 0x80);
+    BOOST_CHECK(mach.getFlagValue(AvrRegisterSlot::C) == 1);
+    BOOST_CHECK(mach.getFlagValue(AvrRegisterSlot::V) == 0);
+}
+
 BOOST_AUTO_TEST_CASE( adiw_test )
 {
     AvrMachine mach, mach_expected;
