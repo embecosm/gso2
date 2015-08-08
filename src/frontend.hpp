@@ -47,6 +47,16 @@ public:
         }
     }
 
+    void initialiseRandom()
+    {
+        for(int i = 0; i < NumberOfRegisters; ++i)
+        {
+            registers[i] = (RegisterType) rand();
+            register_written[i] = false;
+            register_read[i] = false;
+        }
+    }
+
     RegisterType getRegister(Slot *reg)
     {
         register_read[reg->getValue()] = true;
@@ -184,6 +194,16 @@ public:
         for(unsigned i = 0; i < NumberOfFlags; ++i)
             flags[i] = false;
 
+    }
+
+    void initialiseRandom()
+    {
+        TargetMachine<RegisterType, NumberOfRegisters>::initialiseRandom();
+
+        for(int i = 0; i < NumberOfFlags; ++i)
+        {
+            flags[i] = rand() & 1;
+        }
     }
 
     bool getFlagValue(unsigned reg)

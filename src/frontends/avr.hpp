@@ -78,14 +78,6 @@ public:
 class AvrMachine : public TargetMachineWithFlags<uint8_t, 32, 6>
 {
 public:
-    void initialiseRandom()
-    {
-        for(int i = 0; i < 32; ++i)
-        {
-            registers[i] = rand() & 0xFF;
-        }
-    }
-
     std::string toString()
     {
         std::string s;
