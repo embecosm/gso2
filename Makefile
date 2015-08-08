@@ -8,7 +8,7 @@ TESTSOURCES=tests/canonical_slots.cpp tests/avr_instruction.cpp tests/bruteforce
 TESTS=$(TESTSOURCES:.cpp=.test)
 GENERATEDSOURCES=src/frontends/avr_gen.hpp
 CFLAGS= -std=c++11 -Wall -g -O3 -I libraries
-CC=g++-4.9
+CC=g++
 MPICC=mpic++
 
 .PHONY=test all
