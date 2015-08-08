@@ -5,3 +5,16 @@ This respository holds the superoptimizer toolkit, a successor to the GNU Supero
 ## Documentation
 
 The documentation is also a work-in-progress, but there exists the start of a design document (LaTeX), which can be built with the `make doc` command.
+
+## Requirements
+
+Python:
+
+- pyyaml
+- docopt
+
+C++:
+
+- A C++11 compiler
+- boost algorithm
+- boost unit test (for the tests)
