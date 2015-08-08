@@ -99,7 +99,7 @@ inline bool input(std::istream &in, std::string fmt)
         return false;
     }
 
-    for(int i = 0; i < fmt.size(); ++i)
+    for(unsigned i = 0; i < fmt.size(); ++i)
     {
         char c;
 
@@ -125,7 +125,7 @@ bool input(std::istream &in, std::string fmt, V &value, Values &... params)
     have_specifier = ci_private::nextSpecifier(fmt, pre_match, specifier, post_match);
 
     // First, match prematch
-    for(int i = 0; i < pre_match.size(); ++i)
+    for(unsigned i = 0; i < pre_match.size(); ++i)
     {
         char c;
 
@@ -154,7 +154,7 @@ template<typename V, typename... Values>
 bool input(std::istream &in, std::string fmt)
 {
     // Just match fmt
-    for(int i = 0; i < fmt.size(); ++i)
+    for(unsigned i = 0; i < fmt.size(); ++i)
     {
         char c;
 
