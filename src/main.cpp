@@ -4,6 +4,7 @@
 
 #include "frontends/avr.hpp"
 #include "algorithms/canonical.hpp"
+#include "algorithms/constantIterator.hpp"
 #include "algorithms/bruteforce.hpp"
 #include "algorithms/test.hpp"
 #include "utility.hpp"
@@ -56,41 +57,23 @@ int main(int argc, char *argv[])
 
     do {
         vector<Instruction*> insns;
+        vector<Slot*> slots;
 
         // Create the instructions, as per the current iterator
-        for(auto &factory: current_factories)
-            insns.push_back((*factory)());
-
-        vector<Slot*> slots;
-        vector<MachineType::ConstantSlot*> constant_slots;
-
         // Get a list of all of the slots in the instruction list
-        for(auto insn: insns)
+        for(auto &factory: current_factories)
         {
+            Instruction *insn = (*factory)();
+
+            insns.push_back(insn);
+
             auto s1 = insn->getSlots();
             slots.insert(slots.end(), s1.begin(), s1.end());
         }
 
-        // Work out what types of slots we need to iterate over
-        for(auto slot: slots)
-        {
-            if(dynamic_cast<RegisterSlot*>(slot) != 0)
-            {
-                auto va = static_cast<RegisterSlot*>(slot)->getValidArguments();
-                slot->setValue(*min_element(va.begin(), va.end()));
-            }
-            else if(dynamic_cast<MachineType::ConstantSlot*>(slot) != 0)
-            {
-                constant_slots.push_back((MachineType::ConstantSlot*)slot);
-
-                ((MachineType::ConstantSlot*)slot)->iteratorSkip(true);
-                slot->setValue(0);
-            }
-            else
-                slot->setValue(0);
-        }
-
         canonicalIterator c_iter(slots);
+        constantIterator cons_iter(slots);
+        cons_iter.setLossy(true);
 
         // Bruteforce over the possible constants, and canonically iterate
         // over the register slots.
@@ -112,7 +95,7 @@ int main(int argc, char *argv[])
                     }
                 }
             } while(c_iter.next());
-        } while(bruteforceIterate(constant_slots));
+        } while(cons_iter.next());
 
         // Free the instructions and slots
         for(auto slot: slots)

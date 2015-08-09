@@ -1,6 +1,7 @@
 #ifndef __SLOTS_HPP__
 #define __SLOTS_HPP__
 
+#include <iostream>
 #include <vector>
 #include <algorithm>
 #include <assert.h>
@@ -239,10 +240,18 @@ public:
 
     virtual void reset()
     {
-        if(ranges.size() > 0)
+        if(lossy)
         {
-            value = ranges[0].first;
             current_range = 0;
+            value = lossy_values[0];
+        }
+        else
+        {
+            if(ranges.size() > 0)
+            {
+                value = ranges[0].first;
+                current_range = 0;
+            }
         }
     }
 
