@@ -315,6 +315,20 @@ vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsig
     return possibles;
 }
 
+pair<vector<unsigned>,bool> canonicalMapping(vector<Slot*> &slotlist,
+        vector<unsigned> values, vector<vector<unsigned>> *class_intersections)
+{
+    vector<RegisterSlot*> rs;
+
+    rs.reserve(slotlist.size());
+
+    for(auto slot: slotlist)
+        if(dynamic_cast<RegisterSlot*>(slot) != 0)
+            rs.push_back((RegisterSlot*)slot);
+
+    return canonicalMapping(rs, values, class_intersections);
+}
+
 // TODO: precompute register class intersections
 // TODO: explaination, comments
 // TODO: Investigate why this slows down with regular, but restricted classes

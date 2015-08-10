@@ -83,6 +83,9 @@ std::vector<unsigned> possibleRegisters(std::vector<RegisterSlot*> &slotlist, st
 std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> values = {},
     std::vector<std::vector<unsigned>> *class_intersections=nullptr);
 
+std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<Slot*> &slotlist, std::vector<unsigned> values = {},
+    std::vector<std::vector<unsigned>> *class_intersections=nullptr);
+
 std::pair<std::vector<unsigned>,bool> canonicalMappingLive(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> values,
     unsigned     live_registers,
     std::vector<std::vector<unsigned>> *class_intersections=nullptr);
