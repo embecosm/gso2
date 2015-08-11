@@ -176,12 +176,16 @@ The register slot is most commonly used by instructions, representing which regi
 
 \todo[inline]{Give an example of constructing a superoptimizer}
 
+\section{Speed tips}
+
+The canonicalIterator is quite slow. An alternative method to speed up the search, is to use the canonicalIteratorBasic to eliminate the naming. However, this may assign incorrect register classes, therefore canonicalMapping can be used for a matching sequence to see if it can be remapped onto correct registers.
+
 \section{Pitfalls}
 
 If many registers are written during the instruction sequence, then there could be many permutations of register combinations to try in \texttt{containsState}. This can occur if flags are used as registers --- since many instructions could set many flags, there may be many registers written, and a lot of combinations to to try.
 
 
-\section{Futher improvements}
+\section{Further improvements}
 
 Can the \texttt{containsState} function utilise register class information, to speed up the comparison?
 
