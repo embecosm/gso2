@@ -216,9 +216,18 @@ void checkTestDataBasic(vector<Slot *> slots, string filename)
             seq.push_back(stoi(token));
         }
 
-        // for(auto s: getSlotValues(slots))
-        //     cout << s << " ";
-        // cout << endl;
+        if(getSlotValues(slots) != seq)
+        {
+            cout << "Expected: ";
+            for(auto s: seq)
+                cout << s << " ";
+            cout << endl;
+
+            cout << "Got     : ";
+            for(auto s: getSlotValues(slots))
+                cout << s << " ";
+            cout << endl;
+        }
 
         BOOST_REQUIRE_EQUAL(seq.size(), slots.size());
         BOOST_REQUIRE(getSlotValues(slots) == seq);

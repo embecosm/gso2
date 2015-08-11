@@ -168,8 +168,6 @@ BOOST_AUTO_TEST_CASE( adiw_lambda_test )
     mach_expected = mach;
     goal(mach_expected);
 
-    cout << mach.toString() << endl;
-    cout << mach_expected.toString() << endl;
     BOOST_CHECK(testEquivalence(insns, slots, mach, mach_expected) == true);
 
     // BOOST_CHECK(testEquivalence(insns, slots, mach, goal) == true);

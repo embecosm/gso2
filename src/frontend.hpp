@@ -146,6 +146,8 @@ public:
         Combinations<unsigned> comb_iter(rm, n_reg_other);
         std::vector<unsigned> reg_list;
 
+        // TODO: next_permutation takes ~50% of this function's runtime,
+        // perhaps the combinations should be cached and reused.
         do
         {
             comb_iter.getSelection(reg_list);
