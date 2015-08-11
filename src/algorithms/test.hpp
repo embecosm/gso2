@@ -44,7 +44,8 @@ bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slo
 
 template <typename Machine>
 bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slots,
-    std::vector<Instruction *> &reference_insns, std::vector<Slot *> &reference_slots)
+    std::vector<Instruction *> &reference_insns, std::vector<Slot *> &reference_slots,
+    std::vector<std::pair<unsigned, unsigned>> &register_mapping)
 {
     // First do the instruction sequence under test
     Machine test_state;
@@ -58,7 +59,15 @@ bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slo
     // Execute the reference sequence
     executeSequence(reference_insns, reference_slots, reference_state);
 
-    return test_state.containsState(reference_state);
+    return test_state.containsState(reference_state, register_mapping);
+}
+
+template <typename Machine>
+bool testEquivalence(std::vector<Instruction *> &insns, std::vector<Slot *> &slots,
+    std::vector<Instruction *> &reference_insns, std::vector<Slot *> &reference_slots)
+{
+    std::vector<std::pair<unsigned,unsigned>> temporary;
+    return testEquivalence<Machine>(insns, slots, reference_insns, reference_slots, temporary);
 }
 
 template <typename Machine>
@@ -66,9 +75,11 @@ bool testEquivalenceMultiple(std::vector<Instruction *> &insns,
     std::vector<Slot *> &slots, std::vector<Instruction *> reference_insns,
     std::vector<Slot *> reference_slots, unsigned number=100)
 {
+    std::vector<std::pair<unsigned,unsigned>> mapping;
+
     for(unsigned i = 0; i < number; ++i)
     {
-        if(!testEquivalence<Machine>(insns, slots, reference_insns, reference_slots))
+        if(!testEquivalence<Machine>(insns, slots, reference_insns, reference_slots, mapping))
             return false;
     }
 
@@ -80,11 +91,13 @@ bool testEquivalenceMultiple(std::vector<Instruction *> &insns,
     std::vector<Slot *> &slots, std::function<void(Machine&)> transform,
     unsigned number=100)
 {
+    std::vector<std::pair<unsigned,unsigned>> mapping;
+
     for(unsigned i = 0; i < number; ++i)
     {
         Machine initial;
         initial.initialiseRandom();
-        if(!testEquivalence<Machine>(insns, slots, initial, transform))
+        if(!testEquivalence<Machine>(insns, slots, initial, transform, mapping))
             return false;
     }
 
