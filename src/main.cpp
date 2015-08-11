@@ -71,7 +71,9 @@ int main(int argc, char *argv[])
             slots.insert(slots.end(), s1.begin(), s1.end());
         }
 
-        canonicalIterator c_iter(slots);
+
+        canonicalIteratorBasic c_iter(slots, 0);
+
         constantIterator cons_iter(slots);
         cons_iter.setLossy(true);
 
@@ -90,8 +92,13 @@ int main(int argc, char *argv[])
 
                     if(correct)
                     {
-                        cout << "Found" << endl;
-                        cout << print(insns, slots) << endl;
+                        auto mapping = canonicalMapping(slots);
+
+                        if(mapping.second)
+                        {
+                            cout << "Found" << endl;
+                            cout << print(insns, slots) << endl;
+                        }
                     }
                 }
             } while(c_iter.next());

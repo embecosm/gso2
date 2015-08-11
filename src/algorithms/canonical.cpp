@@ -208,28 +208,30 @@ bool canonicalIterator::next()
 
 //////////////////////////////////////////////////////////////////////////////
 
-canonicalIteratorBasic::canonicalIteratorBasic(vector<Slot*> &slotlist_)
+canonicalIteratorBasic::canonicalIteratorBasic(vector<Slot*> &slotlist_,
+    int pre_maximum_)
 {
     for(auto slot: slotlist_)
     {
         if(dynamic_cast<RegisterSlot*>(slot) != 0)
             slotlist.push_back((RegisterSlot*)slot);
     }
+    pre_maximum = pre_maximum_;
 }
 
 bool canonicalIteratorBasic::next()
 {
-    for(int i = slotlist.size()-1; i > 0; i--)
+    for(int i = slotlist.size()-1; i >= 0; i--)
     {
         auto rs_i   = slotlist[i];
         auto va_i   = rs_i->getValidArguments();
 
-        unsigned next = rs_i->getValue() + 1;
+        int next = rs_i->getValue() + 1;
 
-        unsigned max = 0;
+        int max = pre_maximum;
         for(int j = 0; j < i; ++j)
         {
-            auto val = slotlist[j]->getValue();
+            int val = slotlist[j]->getValue();
             if(val > max)
                 max = val;
         }
@@ -349,6 +351,8 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
     // max of all classes
     vector<int> mapping_count;
 
+    // TODO this should probably be precomputed, since 30% of this functions
+    // time is spent in this for loop.
     unsigned largest_reg=0;
     for(auto slot: slotlist)
     {

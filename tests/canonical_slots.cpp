@@ -511,6 +511,52 @@ BOOST_AUTO_TEST_CASE( basic_tests_2 )
 }
 
 
+BOOST_AUTO_TEST_CASE( basic_prematch_tests )
+{   // Three slots, too manyvalues
+    vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
+        new RegisterSlot()};
+
+    setupSlots(slots, {
+            {0,1,2,3},
+            {0,1,2,3},
+            {0,1,2,3}}
+        );
+
+    canonicalIteratorBasic c_iter(slots, 0);
+
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,2}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,2}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,1,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,1,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,1,2}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,2,0}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,2,1}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,2,2}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,2,3}));
+    c_iter.next();
+    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+}
+
 BOOST_AUTO_TEST_CASE( classid_tests_1 )
 
 {   // Four slots, full range of values
