@@ -103,7 +103,7 @@ public:
 
     // List of which reference register, maps to the other register
     bool containsState(TargetMachine &other,
-        std::vector<std::pair<unsigned,unsigned>> &mapping)
+        std::vector<std::pair<unsigned,unsigned>> *mapping=nullptr)
     {
         RegisterType reg_map[NumberOfRegisters];
         RegisterType reg_map_other[NumberOfRegisters];
@@ -111,9 +111,9 @@ public:
         bool equiv;
 
         // If a mapping is specified, don't try to find one, just compare
-        if(mapping.size() != 0)
+        if(mapping && mapping->size() != 0)
         {
-            for(auto &map: mapping)
+            for(auto &map: *mapping)
             {
                 if(registers[map.first] != other.registers[map.second] ||
                     !register_written[map.first] || !other.register_written[map.second])
@@ -162,8 +162,9 @@ public:
                 }
                 if(equiv)
                 {
-                    for(unsigned i = 0; i < n_reg_other; ++i)
-                        mapping.push_back(std::make_pair(reg_map[reg_list[i]], reg_map_other[i]));
+                    if(mapping)
+                        for(unsigned i = 0; i < n_reg_other; ++i)
+                            mapping->push_back(std::make_pair(reg_map[reg_list[i]], reg_map_other[i]));
                     break;
                 }
             } while(std::next_permutation(reg_list.begin(), reg_list.end()));
@@ -173,13 +174,6 @@ public:
 
         return equiv;
     }
-
-    bool containsState(TargetMachine &other)
-    {
-        std::vector<std::pair<unsigned,unsigned>> temporary;
-        return containsState(other, temporary);
-    }
-
 
 protected:
     RegisterType registers[NumberOfRegisters];
