@@ -370,10 +370,18 @@ protected:
     bool register_read[NumberOfRegisters];
 };
 
+
+/*! \class TargetMachineWithFlags
+
+    This class extends the TargetMachine class to handle an arbitrary number
+    of processor flags.
+*/
 template <typename RegisterType, unsigned NumberOfRegisters, unsigned NumberOfFlags>
 class TargetMachineWithFlags : public TargetMachine<RegisterType, NumberOfRegisters>
 {
 public:
+    /*! Initialise the the class, setting flags to 0.
+    */
     TargetMachineWithFlags() : TargetMachine<RegisterType, NumberOfRegisters>()
     {
         for(unsigned i = 0; i < NumberOfFlags; ++i)
@@ -381,6 +389,12 @@ public:
 
     }
 
+    /*! Set the value of the flags randomly.
+
+        This overrides the initialiseRandom function of TargetMachine, also
+        providing randomised flags.
+
+    */
     void initialiseRandom()
     {
         TargetMachine<RegisterType, NumberOfRegisters>::initialiseRandom();
@@ -391,14 +405,24 @@ public:
         }
     }
 
-    bool getFlagValue(unsigned reg)
+    /*! Get the value of a flag
+
+        @param flg  The flag to return the value of.
+        @return     The value of the flag.
+    */
+    bool getFlagValue(unsigned flg)
     {
-        return flags[reg];
+        return flags[flg];
     }
 
-    void setFlagValue(unsigned reg, bool value)
+    /*! Set the value of a flag
+
+        @param flg      The flag to set the value of
+        @param value    The value to set to.
+    */
+    void setFlagValue(unsigned flg, bool value)
     {
-        flags[reg] = value;
+        flags[flg] = value;
     }
 
 protected:
