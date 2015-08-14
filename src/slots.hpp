@@ -176,7 +176,7 @@ public:
     /*! Reset the value of the Slot to the first in the set of valid
         arguments, if one has been set. Otherwise, do not reset the value.
     */
-    virtual void reset()
+    virtual void reset() override
     {
         if(validArguments.size() > 0)
             setValue(validArguments[0]);
@@ -231,7 +231,7 @@ protected:
 
         @return  A string representing the register.
     */
-    virtual std::string toString() const
+    virtual std::string toString() const override
     {
         return "r" + std::to_string(getValue());
     }
@@ -244,7 +244,7 @@ protected:
         @param in   The input stream.
         @return     The input streamm.
     */
-    virtual std::istream &input(std::istream &in)
+    virtual std::istream &input(std::istream &in) override
     {
         unsigned v;
         char r;
@@ -307,7 +307,7 @@ public:
         The value is the lower (i.e. first value in the first range), or the
         lowest value in this list of lossy values.
     */
-    virtual void reset()
+    virtual void reset() override
     {
         if(lossy)
         {

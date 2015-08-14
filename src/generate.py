@@ -16,7 +16,7 @@ template = """
 class {class_prefix}{insn_name} : public Instruction
 {{
 public:
-    unsigned execute(TargetMachineBase *_mach, Slot** slots)
+    unsigned execute(TargetMachineBase *_mach, Slot** slots) override
     {{
         // TODO assert enough slots
         // TODO assert slot types are RegisterSlots
@@ -33,7 +33,7 @@ public:
 
     // Return the number and types of register slots required
     //    which ones are read and written
-    std::vector<Slot*> getSlots()
+    std::vector<Slot*> getSlots() override
     {{
         return {{ {slots} }};
     }}
@@ -43,22 +43,22 @@ public:
         return {n_slots};
     }}
 
-    std::string toString()
+    std::string toString() override
     {{
         return fmt::format("{format}" {print_slotlist_str});
     }}
 
-    std::string toString(Slot** slots)
+    std::string toString(Slot** slots) override
     {{
         return fmt::format("{format}" {print_slotlist});
     }}
 
-    std::string getName()
+    std::string getName() override
     {{
         return "{print_name}";
     }}
 
-    bool parse(std::string input, std::vector<Slot*> &slotlist)
+    bool parse(std::string input, std::vector<Slot*> &slotlist) override
     {{
         auto slots = getSlots();
 
