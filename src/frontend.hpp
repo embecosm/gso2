@@ -70,17 +70,17 @@ public:
         @return  A list of slots which the instruction operates on.
 
     */
-    virtual std::vector<Slot*> getSlots() {return {};};
+    virtual std::vector<Slot*> getSlots() {return {};}
 
     /*! Return the number of slots that the instruction operates on.
 
         @return  The number of slots that the instruction's execute method
                  requires.
     */
-    virtual unsigned getNumberOfSlots() {return 0};
+    virtual unsigned getNumberOfSlots() {return 0;}
 
 
-    virtual std::string toString() { return ""; };
+    virtual std::string toString() { return ""; }
 
     /*! Represent the instruction as a string.
 
@@ -90,7 +90,7 @@ public:
         @return        A string with a textual representation of the
                        instruction.
     */
-    virtual std::string toString(Slot **slots) { return "";};
+    virtual std::string toString(Slot **slots) { return "";}
 
     /*! Return a string with the instruction mnemonic.
 
@@ -98,7 +98,7 @@ public:
 
         @return  The instruction mnemonic.
     */
-    virtual std::string getName() { return "";};
+    virtual std::string getName() { return "";}
 
 
     /*! Construct a list of slots based on a string.
