@@ -71,7 +71,7 @@ void checkTestData(vector<Slot *> slots, string filename)
         "Test data file \"" + filename + "\" is corrupt at the start");
     n_tests = stoi(start);
 
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
 
     for(unsigned i = 0; i < n_tests; ++i)
     {
@@ -121,7 +121,7 @@ void checkTestDataUnordered(vector<Slot *> slots, string filename)
         "Test data file \"" + filename + "\" is corrupt at the start");
     n_tests = stoi(start);
 
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
 
     vector<vector<unsigned>> correct_sequences;
     vector<vector<unsigned>> computed_sequences;
@@ -283,7 +283,7 @@ BOOST_AUTO_TEST_CASE( single_tests_1 )
             {0}}
         );
 
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
 
     BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
     c_iter.next();
@@ -304,7 +304,7 @@ BOOST_AUTO_TEST_CASE( single_tests_2 )
             {5}}
         );
 
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
 
     BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,3,2,5}));
     c_iter.next();
@@ -324,7 +324,7 @@ BOOST_AUTO_TEST_CASE( sparse_tests_1 )
             {0,1}}
         );
 
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
 
     BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
     c_iter.next();
@@ -348,7 +348,7 @@ BOOST_AUTO_TEST_CASE( sparse_tests_2)
             {0,1}}
         );
 
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
 
     BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
     c_iter.next();
@@ -376,7 +376,7 @@ BOOST_AUTO_TEST_CASE( sparse_tests_3 )
             {0,1}}
         );
 
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
 
     BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
     c_iter.next();
@@ -627,7 +627,7 @@ BOOST_AUTO_TEST_CASE( overspecified_tests )
             {0,1,2,3,7}}
         );
 
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
 
     BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
     c_iter.next();
@@ -656,7 +656,7 @@ BOOST_AUTO_TEST_CASE( slot_tests_1 )
     slots[1]->setValue(0);
     slots[3]->setValue(0);
 
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
 
     BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0,0}));
     c_iter.next();

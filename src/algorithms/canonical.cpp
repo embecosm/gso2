@@ -7,7 +7,7 @@
 
 using namespace std;
 
-canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
+canonicalIteratorGeneric::canonicalIteratorGeneric(vector<Slot*> &slotlist_)
 : canonicalIteratorBasic(slotlist_), canonical(slotlist.size())
 {
     // Sort our list of slots by valid arguments size. This can massively
@@ -101,7 +101,7 @@ canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
     }
 }
 
-void canonicalIterator::precomputePossibleRegisters(vector<vector<unsigned>> classes)
+void canonicalIteratorGeneric::precomputePossibleRegisters(vector<vector<unsigned>> classes)
 {
     unsigned n_classes = classes.size();
 
@@ -139,7 +139,7 @@ void canonicalIterator::precomputePossibleRegisters(vector<vector<unsigned>> cla
     }
 }
 
-bool canonicalIterator::canonicalStep()
+bool canonicalIteratorGeneric::canonicalStep()
 {
     bool found_next = false;
 
@@ -171,7 +171,7 @@ bool canonicalIterator::canonicalStep()
     return found_next;
 }
 
-bool canonicalIterator::next()
+bool canonicalIteratorGeneric::next()
 {
     if(slotlist.size() == 0)    // All slots have been excluded.
     {
@@ -497,7 +497,7 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
 //////////////////////////////////////////////////////////////////////////////
 
 canonicalIteratorLiveness::canonicalIteratorLiveness(vector<Slot*> &slotlist_, unsigned n_live_)
-: canonicalIterator(slotlist_), n_live(n_live_)
+: canonicalIteratorGeneric(slotlist_), n_live(n_live_)
 {
 }
 

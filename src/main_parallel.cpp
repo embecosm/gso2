@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
                 slot->setValue(0);
         }
 
-        canonicalIterator c_iter(slots);
+        canonicalIteratorGeneric c_iter(slots);
         // cout << print(insns,slots) << endl;
 
         // Bruteforce over the possible constants, and canonically iterate

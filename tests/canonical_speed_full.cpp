@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
     cout << "Starting nextCanonical speed test...         " << flush;
     start = clock();
-    canonicalIterator c_iter(slots);
+    canonicalIteratorGeneric c_iter(slots);
     while(c_iter.next())
         n_tests++;
     end = clock();

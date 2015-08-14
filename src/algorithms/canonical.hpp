@@ -28,7 +28,7 @@ the register classes of each slot.
 
 */
 
-class canonicalIterator : public canonicalIteratorBasic
+class canonicalIteratorGeneric : public canonicalIteratorBasic
 {
 public:
     /*!
@@ -38,7 +38,7 @@ public:
 
        @param slotlist_  List of pointers to register slots
     */
-    canonicalIterator(std::vector<Slot*> &slotlist_);
+    canonicalIteratorGeneric(std::vector<Slot*> &slotlist_);
 
     /*!
         Advance the stored RegisterSlots to the next sequence.
@@ -69,7 +69,7 @@ private:
     std::vector<std::pair<unsigned,unsigned>> commute_list;
 };
 
-class canonicalIteratorLiveness : public canonicalIterator
+class canonicalIteratorLiveness : public canonicalIteratorGeneric
 {
 public:
     canonicalIteratorLiveness(std::vector<Slot*> &slotlist_, unsigned live_registers);
