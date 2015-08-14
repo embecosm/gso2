@@ -7,7 +7,7 @@
 
 #include "frontends/avr.hpp"
 // #include "frontends/x86_64.hpp"
-#include "algorithms/canonical.hpp"
+#include "algorithms/canonicalIterator.hpp"
 #include "algorithms/bruteforce.hpp"
 #include "algorithms/test.hpp"
 #include "utility.hpp"

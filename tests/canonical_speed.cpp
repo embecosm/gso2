@@ -5,7 +5,7 @@
 #include <sstream>
 #include <ctime>
 
-#include "algorithms/canonical.hpp"
+#include "algorithms/canonicalIterator.hpp"
 
 using namespace std;
 

@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "frontends/avr.hpp"
-#include "algorithms/canonical.hpp"
+#include "algorithms/canonicalIterator.hpp"
 #include "algorithms/constantIterator.hpp"
 #include "algorithms/bruteforce.hpp"
 #include "algorithms/test.hpp"

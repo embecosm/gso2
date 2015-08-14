@@ -1,22 +1,11 @@
-#ifndef __CANONICAL_H__
-#define __CANONICAL_H__
+#ifndef __CANONICALITERATORGENERIC_H__
+#define __CANONICALITERATORGENERIC_H__
 
 #include <vector>
 #include <unordered_map>
 #include "../slots.hpp"
 
-class canonicalIteratorBasic
-{
-public:
-    canonicalIteratorBasic(std::vector<Slot*> &slotlist_, int pre_maximum_=-1);
-
-    void initialise();
-    bool next();
-protected:
-    std::vector<RegisterSlot*> slotlist;
-
-    int pre_maximum;
-};
+#include "canonicalIteratorBasic.hpp"
 
 /*! \class canonicalIterator
     Iteratively generate values for registers slots.
@@ -57,38 +46,11 @@ protected:
     void precomputePossibleRegisters(std::vector<std::vector<unsigned>> classes);
 };
 
-class canonicalIteratorCommutative
-{
-public:
-    canonicalIteratorCommutative(std::vector<Slot*> &slotlist_);
-
-    bool next();
-private:
-    const std::vector<Slot*> &slotlist;
-    std::vector<std::vector<unsigned>> skips;
-    std::vector<std::pair<unsigned,unsigned>> commute_list;
-};
-
-class canonicalIteratorLiveness : public canonicalIteratorGeneric
-{
-public:
-    canonicalIteratorLiveness(std::vector<Slot*> &slotlist_, unsigned live_registers);
-
-    bool next();
-private:
-    unsigned n_live;
-};
-
-std::vector<unsigned> possibleRegisters(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> &values, unsigned loc);
-
 std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> values = {},
     std::vector<std::vector<unsigned>> *class_intersections=nullptr);
 
 std::pair<std::vector<unsigned>,bool> canonicalMapping(std::vector<Slot*> &slotlist, std::vector<unsigned> values = {},
     std::vector<std::vector<unsigned>> *class_intersections=nullptr);
 
-std::pair<std::vector<unsigned>,bool> canonicalMappingLive(std::vector<RegisterSlot*> &slotlist, std::vector<unsigned> values,
-    unsigned     live_registers,
-    std::vector<std::vector<unsigned>> *class_intersections=nullptr);
 
 #endif
