@@ -329,7 +329,7 @@ public:
             return false;
 
         std::vector<unsigned> rm(reg_map, reg_map+n_reg);
-        Combinations<unsigned> comb_iter(rm, n_reg_other);
+        Combinations comb_iter(rm.size(), n_reg_other);
         std::vector<unsigned> reg_list;
 
         // Iterate over each combination of n_reg_other registers from our

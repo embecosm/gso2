@@ -14,7 +14,7 @@ BOOST_AUTO_TEST_CASE( combination_tests )
     {
         vector<unsigned> values = {0,1,2,3,4,5,6,7};
 
-        Combinations<unsigned> comb(values, 4);
+        Combinations comb(values.size(), 4);
 
         unsigned count = 0;
         do {
@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE( combination_tests )
     {
         vector<unsigned> values = {0,1,2,3,4,5};
 
-        Combinations<unsigned> comb(values, 2);
+        Combinations comb(values.size(), 2);
 
         unsigned count = 0;
         do {
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE( combination_tests )
         vector<unsigned> values = {0,1,2,3,4,5};
         vector<unsigned> sel;
 
-        Combinations<unsigned> comb(values, 2);
+        Combinations comb(values.size(), 2);
 
         comb.getSelection(sel);
         BOOST_CHECK(sel == vector<unsigned>({0,1}));
