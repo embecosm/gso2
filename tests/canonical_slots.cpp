@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <map>
 
-#include "algorithms/canonical.hpp"
+#include "algorithms/canonicalIterator.hpp"
 
 using namespace std;
 

@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "algorithms/bruteforce.hpp"
-#include "algorithms/canonical.hpp"
+#include "algorithms/canonicalIterator.hpp"
 
 using namespace std;
 

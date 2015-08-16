@@ -8,7 +8,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "algorithms/canonical.hpp"
+#include "algorithms/canonicalIterator.hpp"
 #include "algorithms/test.hpp"
 #include "frontends/avr.hpp"
 
