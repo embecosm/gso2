@@ -10,7 +10,7 @@ using namespace std;
 
 Combinations::Combinations(unsigned size_, unsigned n_)
 {
-    // TODO check values.size() <= 64
+    // TODO check values.size() <= 63
     n = n_;
     size = size_;
     current = (1 << n) - 1;
@@ -26,6 +26,8 @@ void Combinations::getSelection(std::vector<unsigned> &sel)
 
     sel.resize(n);
 
+    // Iterate through each bit in val, and if set, add the current value to
+    // the list.
     for(unsigned i = 0; i < size; ++i, val >>= 1)
     {
         if(val & 1)
@@ -47,6 +49,8 @@ bool Combinations::next()
     current = ripple | ones;
     // End snoob function.
 
+    // Check if we have reached the end, and if so, reset current to its first
+    // value.
     if(current > max || (max == 1 && current == 1))
     {
         current = (1<<n)-1;
@@ -81,6 +85,8 @@ pair<Instruction*, vector<Slot*>> parseInstruction(string input, vector<function
     for(auto &factory: factories)
         insns.push_back(factory());
 
+    // Iterate through all the instructions created, and pick the first one
+    // that accepts the string we are given.
     for(unsigned int i = 0; i < insns.size(); ++i)
     {
         bool success = insns[i]->parse(input, slots);
@@ -93,6 +99,8 @@ pair<Instruction*, vector<Slot*>> parseInstruction(string input, vector<function
         }
     }
 
+    // TODO deallocate insns
+
     return make_pair(nullptr, vector<Slot*>());
 }
 
@@ -101,8 +109,10 @@ bool parseInstructionList(string input, vector<function<Instruction *()>> factor
 {
     vector<string> lines;
 
+    // Split the input string on newlines
     boost::split(lines, input, boost::is_any_of("\n"));
 
+    // Attempt to match each line as an instruction
     for(auto line: lines)
     {
         auto insn_data = parseInstruction(line, factories);
@@ -113,6 +123,7 @@ bool parseInstructionList(string input, vector<function<Instruction *()>> factor
             return false;
         }
 
+        // Create a list of slots
         auto insn_slots = insn_data.second;
         slots.insert(slots.end(), insn_slots.begin(), insn_slots.end());
 
