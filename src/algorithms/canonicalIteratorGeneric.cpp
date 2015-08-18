@@ -14,7 +14,7 @@ canonicalIteratorGeneric::canonicalIteratorGeneric(vector<Slot*> &slotlist_)
     // speed up the enumeration of some register classes, based on the
     // observation that the remapping function can 'early out' if it runs out
     // of register classes. Therefore the smallest classes should go first.
-    sort(slotlist.begin(), slotlist.end(),
+    stable_sort(slotlist.begin(), slotlist.end(),
         [] (RegisterSlot *a, RegisterSlot *b) {
             return a->getValidArguments().size() < b->getValidArguments().size();
         }
@@ -109,7 +109,7 @@ void canonicalIteratorGeneric::precomputePossibleRegisters(vector<vector<unsigne
 {
     unsigned n_classes = classes.size();
 
-    class_intersections.resize(1 << n_classes);
+    class_intersections.resize(1U << n_classes);
 
     // Only support up to a few register classes. TODO handle edge case for
     // processors with many register classes?
