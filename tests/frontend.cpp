@@ -1,8 +1,9 @@
-#define BOOST_TEST_MODULE frontend test
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
 #include "frontend.hpp"
+
+BOOST_AUTO_TEST_SUITE(frontend_test)
 
 BOOST_AUTO_TEST_CASE( target_machine_register_test )
 {
@@ -48,3 +49,5 @@ BOOST_AUTO_TEST_CASE( target_machine_containsState_test )
     test_mach.setRegisterValue(4, 0xBEEFCAFE);
     BOOST_CHECK(test_mach.containsState(expected_mach) == true);
 }
+
+BOOST_AUTO_TEST_SUITE_END()

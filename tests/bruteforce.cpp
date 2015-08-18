@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE bruteforce test
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
@@ -9,6 +8,8 @@
 #include "algorithms/canonicalIterator.hpp"
 
 using namespace std;
+
+BOOST_AUTO_TEST_SUITE(bruteforce_test)
 
 BOOST_AUTO_TEST_CASE( standard_tests )
 {
@@ -214,3 +215,5 @@ BOOST_AUTO_TEST_CASE( next_tests )
         BOOST_REQUIRE(count == 5*5*5);
     }
 }
+
+BOOST_AUTO_TEST_SUITE_END()

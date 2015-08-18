@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE canonical test
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <algorithm>
@@ -12,7 +11,11 @@
 
 using namespace std;
 
+vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsigned> &values, unsigned val);
+
 template class std::vector<Slot*>;
+
+BOOST_AUTO_TEST_SUITE(canonical_test)
 
 vector<unsigned> getSlotValues(const vector<Slot*> slots)
 {
@@ -451,7 +454,6 @@ BOOST_AUTO_TEST_CASE( sparse_tests_5 )
     checkTestDataUnordered(slots, "data/sparse_5.csv");
 }
 
-
 BOOST_AUTO_TEST_CASE( long_tests_1 )
 { // 12 slots, limited values
     vector<Slot *> slots;
@@ -700,8 +702,6 @@ BOOST_AUTO_TEST_CASE( slot_tests_2 )
     c_iter.next();
     BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0,0}));
 }
-
-vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsigned> &values, unsigned val);
 
 BOOST_AUTO_TEST_CASE( possible_tests )
 {
@@ -1042,3 +1042,5 @@ BOOST_AUTO_TEST_CASE( liveness_standard_tests_5 )
     BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,1,2,2}));
     c_iter.next();
 }
+
+BOOST_AUTO_TEST_SUITE_END()

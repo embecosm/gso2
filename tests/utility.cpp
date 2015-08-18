@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE utility test
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
@@ -8,6 +7,8 @@
 #include "utility.hpp"
 
 using namespace std;
+
+BOOST_AUTO_TEST_SUITE(utility_test)
 
 BOOST_AUTO_TEST_CASE( combination_tests )
 {
@@ -67,3 +68,5 @@ BOOST_AUTO_TEST_CASE( combination_tests )
         BOOST_CHECK(sel == vector<unsigned>({0,4}));
     }
 }
+
+BOOST_AUTO_TEST_SUITE_END()

@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE avr instruction test
 #define BOOST_TEST_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
@@ -13,6 +12,8 @@
 #include "frontends/avr.hpp"
 
 using namespace std;
+
+BOOST_AUTO_TEST_SUITE(avr_instruction_test)
 
 BOOST_AUTO_TEST_CASE( instruction_tests )
 {
@@ -234,3 +235,5 @@ BOOST_AUTO_TEST_CASE( machine_permutation_tests )
         BOOST_REQUIRE(mach.containsState(mach2) == true);
     }
 }
+
+BOOST_AUTO_TEST_SUITE_END()

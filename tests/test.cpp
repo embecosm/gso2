@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE test (algorithm) test
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
@@ -9,6 +8,8 @@
 #include "algorithms/test.hpp"
 
 using namespace std;
+
+BOOST_AUTO_TEST_SUITE(test_algorithm_test)
 
 class TestMachine : public TargetMachine<uint32_t, 4>
 {
@@ -245,3 +246,5 @@ BOOST_AUTO_TEST_CASE( instruction_sequences_tests )
         BOOST_REQUIRE(testEquivalenceMultiple<TestMachine>(insns,slots,ref_insns,ref_slots) == true);
     }
 }
+
+BOOST_AUTO_TEST_SUITE_END()

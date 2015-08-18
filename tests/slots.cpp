@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE slots test
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
@@ -9,6 +8,8 @@
 #include "algorithms/bruteforce.hpp"
 
 using namespace std;
+
+BOOST_AUTO_TEST_SUITE(slots_test)
 
 BOOST_AUTO_TEST_CASE( bruteforce_slot_tests )
 {
@@ -83,3 +84,5 @@ BOOST_AUTO_TEST_CASE( bruteforce_slot_tests )
         BOOST_REQUIRE(values[1].getValue() == 0);
     }
 }
+
+BOOST_AUTO_TEST_SUITE_END()
