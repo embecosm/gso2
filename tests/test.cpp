@@ -19,12 +19,6 @@ public:
             registers[i] = regs_[i];
     }
 
-    void initialiseRandom()
-    {
-        for(int i = 0; i < 4; ++i)
-            registers[i] = rand();
-    }
-
     bool operator== (TestMachine &rhs)
     {
         for(int i = 0; i < 4; ++i)
