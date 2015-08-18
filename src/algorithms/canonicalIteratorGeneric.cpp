@@ -20,7 +20,8 @@ canonicalIteratorGeneric::canonicalIteratorGeneric(vector<Slot*> &slotlist_)
         }
         );
 
-    // Find number of different register values possible
+    // Find number of different register values possible. Computed as the
+    // union of all classes.
     std::set<int> all;
     int largest_classid=0;
 
@@ -32,6 +33,8 @@ canonicalIteratorGeneric::canonicalIteratorGeneric(vector<Slot*> &slotlist_)
 
         int cid = slot->getRegisterClassID();
 
+        // Set this to false if there is atleast one class without a set
+        // register class ID.
         if(cid == -1)
             computed_intersections = false;
 
@@ -41,8 +44,8 @@ canonicalIteratorGeneric::canonicalIteratorGeneric(vector<Slot*> &slotlist_)
 
     max_class_size = all.size();
 
-    // If we have at least one class which is not set, then do not compute the
-    // intersection and rely on the slower way of doing it.
+    // If we have at least one class with its ID not set, then do not compute
+    // the intersection and rely on the slower way of doing it.
     if(computed_intersections)
     {
         vector<vector<unsigned>> classes(largest_classid+1);
@@ -56,7 +59,8 @@ canonicalIteratorGeneric::canonicalIteratorGeneric(vector<Slot*> &slotlist_)
         precomputePossibleRegisters(classes);
     }
 
-    if(slotlist.size() == 0)    // All slots have been excluded.
+    // All slots have been excluded, i.e. no register slots
+    if(slotlist.size() == 0)
     {
         return;
     }
@@ -178,6 +182,8 @@ bool canonicalIteratorGeneric::next()
         return false;
     }
 
+    // Iterate through possible mappings (canonicalStep), and test whether the
+    // registers can be remapped into values consistent with their register class.
     while(true)
     {
         bool found_next = canonicalStep();
@@ -273,6 +279,7 @@ vector<unsigned> possibleRegisters(vector<RegisterSlot*> &slotlist, vector<unsig
     return possibles;
 }
 
+// Accept a generic slots list.
 pair<vector<unsigned>,bool> canonicalMapping(vector<Slot*> &slotlist,
         vector<unsigned> values, vector<vector<unsigned>> *class_intersections)
 {
@@ -280,6 +287,7 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<Slot*> &slotlist,
 
     rs.reserve(slotlist.size());
 
+    // TODO: should be only extract the values which correspond to the slots.
     for(auto slot: slotlist)
         if(dynamic_cast<RegisterSlot*>(slot) != 0)
             rs.push_back((RegisterSlot*)slot);
@@ -287,10 +295,6 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<Slot*> &slotlist,
     return canonicalMapping(rs, values, class_intersections);
 }
 
-// TODO: precompute register class intersections
-// TODO: explaination, comments
-// TODO: Investigate why this slows down with regular, but restricted classes
-//           e.g {0-3}x8 slower than {0-7}x8
 pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
         vector<unsigned> values, vector<vector<unsigned>> *class_intersections)
 {
@@ -328,13 +332,31 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
             values[j] = slotlist[j]->getValue();
     }
 
+    // Flag for whether the remapping is successful.
     bool work = false;
+
+    // This loop iterates through possible remappings of the registers. For
+    // each slot, a list of "possibles" is computed - representing which
+    // registers could be remapped to the current slot. An overall index into
+    // each possibles list is kept (possibilities). The value possibilities[i]
+    // is the index into the current possibles list.
+    //
+    // The variable, mapping, stores the remapped list of registers, with
+    // mapping_count storing the number of times each register has been
+    // remapped. I.e. mapping_count[k] is the number of times register k
+    // appears in mapping.
 
     while(i < slotlist.size())
     {
+        // Find out if the current value has been seen earlier in the
+        // sequence.
         auto mv = find(values.begin(), values.begin()+i, values[i]);
         if(i > 0 && mv != values.begin()+i)
         {
+            // If we have seen the same value before, we assign the same value
+            // to it. We then mark is as "done" in the possibilities list.
+            // This is so we can skip over the assignment if we are winding an
+            // assignment (i.e. going backwards).
             if(possibilities[i] != -1)
             {
                 int n = mv - values.begin();
@@ -437,6 +459,10 @@ pair<vector<unsigned>,bool> canonicalMapping(vector<RegisterSlot*> &slotlist,
             continue;
         }
 
+        // We have found a potential remapping, therefore store this, and
+        // increment the number of times this register has been mapped.
+        // Advance to the next slot. If we are at the last slot, then we have
+        // successfully remapped.
         mapping[i] = possibles[possibilities[i]];
         mapping_count[mapping[i]]++;
         possibilities[i]++;
