@@ -31,3 +31,8 @@
 
 # Debug files
 *.dSYM/
+
+#
+.deps
+.dirstamp
+Makefile
