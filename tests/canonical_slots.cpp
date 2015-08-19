@@ -239,6 +239,41 @@ void checkTestDataBasic(vector<Slot *> slots, string filename)
     }
 }
 
+void checkTestUnordered(vector<Slot *> slots, vector<vector<unsigned>> correct_sequences)
+{
+    canonicalIteratorGeneric c_iter(slots);
+
+    vector<vector<unsigned>> computed_sequences;
+
+     do {
+        computed_sequences.push_back(getSlotValues(slots));
+    } while(c_iter.next());
+
+    sort(correct_sequences.begin(), correct_sequences.end());
+    sort(computed_sequences.begin(), computed_sequences.end());
+
+    if(correct_sequences != computed_sequences)
+    {
+        cout << "Correct sequences has " << correct_sequences.size() << " elements\n";
+        cout << "Computed sequences has " << computed_sequences.size() << " elements\n";
+
+        vector<vector<unsigned>> diff;
+        set_symmetric_difference(correct_sequences.begin(), correct_sequences.end(),
+            computed_sequences.begin(), computed_sequences.end(), back_inserter(diff));
+
+        cout << "Differences:\n";
+        for(auto d: diff)
+        {
+            cout << "   ";
+            for(auto v: d)
+                cout << v<< " ";
+            cout << endl;
+        }
+    }
+
+    BOOST_REQUIRE(correct_sequences == computed_sequences);
+}
+
 BOOST_AUTO_TEST_CASE( standard_tests_1 )
 { // Four slots, full range of values
     vector<Slot *> slots = {new RegisterSlot(), new RegisterSlot(),
@@ -327,17 +362,13 @@ BOOST_AUTO_TEST_CASE( sparse_tests_1 )
             {0,1}}
         );
 
-    canonicalIteratorGeneric c_iter(slots);
+    vector<vector<unsigned>> correct= {
+        {0,0,0},
+        {0,0,1},
+        {1,0,1},
+        {1,0,0}};
 
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,1}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+    checkTestUnordered(slots, correct);
 }
 
 BOOST_AUTO_TEST_CASE( sparse_tests_2)
@@ -351,20 +382,14 @@ BOOST_AUTO_TEST_CASE( sparse_tests_2)
             {0,1}}
         );
 
-    canonicalIteratorGeneric c_iter(slots);
+    vector<vector<unsigned>> correct= {
+        {0,0,0},
+        {0,0,1},
+        {0,2,0},
+        {1,0,0},
+        {0,2,1}};
 
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,1}));
-    c_iter.next();
-    BOOST_CHECK(getSlotValues(slots) == vector<unsigned>({0,2,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,0}));
-    c_iter.next();
-
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,1}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0}));
+    checkTestUnordered(slots, correct);
 }
 
 BOOST_AUTO_TEST_CASE( sparse_tests_3 )
@@ -379,35 +404,22 @@ BOOST_AUTO_TEST_CASE( sparse_tests_3 )
             {0,1}}
         );
 
-    canonicalIteratorGeneric c_iter(slots);
+    vector<vector<unsigned>> correct= {
+        {0,0,0,0},
+        {0,0,0,1},
+        {0,0,2,0},
+        {0,0,2,1},
+        {0,2,0,0},
+        {0,2,0,1},
+        {0,2,2,0},
+        {1,0,0,0},
+        {0,2,2,1},
+        {0,2,3,0},
+        {1,0,2,0},
+        {1,2,0,0},
+        {0,2,3,1}};
 
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,1}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,2,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,2,1}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,0,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,0,1}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,2,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,0,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,2,1}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,3,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,0,2,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({1,2,0,0}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,2,3,1}));
-    c_iter.next();
-    BOOST_REQUIRE(getSlotValues(slots) == vector<unsigned>({0,0,0,0}));
+    checkTestUnordered(slots, correct);
 }
 
 BOOST_AUTO_TEST_CASE( sparse_tests_4 )
