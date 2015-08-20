@@ -36,3 +36,6 @@
 .deps
 .dirstamp
 Makefile
+*.mk
+
+*_gen.hpp
