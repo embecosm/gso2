@@ -39,6 +39,16 @@ AC_CHECK_TYPES([ptrdiff_t])
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([strerror])
 
+# Documentation
+
+# The doxygen-config.in expands the macro @SRCDIR@ so that doxygen can be run
+# in the build directory, when doing an out of tree build
+mkdir -p doc/doxygen
+DX_INIT_DOXYGEN("GNU Superoptimizer Toolkit", doc/doxygen-config, [doc/doxygen])
+DX_DOXYGEN_FEATURE(ON)
+DX_PDF_FEATURE(ON)
+DX_HTML_FEATURE(ON)
+
 # Link in test files
 AC_CONFIG_LINKS([
     tests/data/long_1.csv:tests/data/long_1.csv
@@ -49,5 +59,5 @@ AC_CONFIG_LINKS([
     tests/data/standard_2.csv:tests/data/standard_2.csv
     ])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile doxygen.mk doc/doxygen-config])
 AC_OUTPUT

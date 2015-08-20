@@ -217,11 +217,13 @@ bool canonicalIteratorGeneric::next()
     satisfies the constraints of every slot.
 
     For example,
+    \code
         Register value,    Register class
         1                  {  1,2,3}
         0                  {0,1,2,3}
         1                  {0,1,2}
         0                  {0,1,2,3}
+    \endcode
 
     With val=1, the list of possibles is {1,2}, since these are the valid values
     for a remapping of the register 1.

@@ -13,6 +13,7 @@
     possible renamings have been iterated during the course of the iterator.
 
     Example of canonical form:
+    \code
         3 register slots
             0 0 0
             0 0 1
@@ -27,6 +28,7 @@
             0 0 1 1
             0 0 1 2
             ...
+    \endcode
 
     The algorithm for computing the next set of values is simple. Each slot is
     considered consecutively and incremented. If the slot's value becomes
@@ -38,6 +40,7 @@
     iterator to assume there were pre_maximum number of additional slots
     before the slots given. For example, 3 register slots, passed with
     pre_maximum=1 gives the following sequence:
+    \code
         0 0 0
         0 0 1
         0 1 0
@@ -47,6 +50,7 @@
         1 0 1
         1 0 2
         ...
+    \endcode
     This parameter allows the canonicalIteratorBasic class to be used to just
     iterate over functional register renamings, narrowing the search space
     before trying to map a matching sequence to a correct register assignment.

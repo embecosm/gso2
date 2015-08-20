@@ -30,7 +30,7 @@ public:
         function should return the number of slots used by the instruction.
 
         An example of the and instruction for AVR is given below.
-
+        \code
             // Cast the given MachineTarget to the correct type
             AvrMachine *mach = static_cast<AvrMachine*>(_mach);
 
@@ -46,6 +46,7 @@ public:
             mach->setRegister(slots[0], rA);
 
             return 2;
+        \endcode
 
         @param _mach    The machine state, which will be modified as per the
                         operation of the instruction.
@@ -220,19 +221,20 @@ public:
         registers marked as written in this state.
 
         For example:
+        \code
             Current machine state:
                 r0 = 10, r1 = 20
             Other machine state:
                 r0 = 10, r1 = 20, r2 = 30
-
+        \endcode
             The other state is equivalent, since only r0 and r1 are checked.
 
-
+        \code
             Current machine state:
                 r0 = 10, r1 = 20, r2 = 20
             Other machine state:
                 r0 = 10, r1 = 20
-
+        \endcode
             The other state is not equivalent, since r0, r1 and r2 are checked.
 
         @param other    The state to check equivalence to.
@@ -264,11 +266,12 @@ public:
         mapping.
 
         For example:
+        \code
             Current machine state:
                 r0 = 10, r1 = 20
             Other machine state:
                 r4 = 20
-
+        \endcode
             r4 can be mapped onto r1, therefore the current state contains
             state other.
 

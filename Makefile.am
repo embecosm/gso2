@@ -48,3 +48,12 @@ tests_tests_CXXFLAGS=-O0
 
 test: tests/test
 	cd tests && ./test
+##############################################################################
+
+doc: doxygen-run
+	make doxygen-pdf
+# TODO build design doc
+
+include doxygen.mk.am
+
+MOSTLYCLEANFILES=$(DX_CLEANFILES)
