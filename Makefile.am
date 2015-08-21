@@ -50,10 +50,20 @@ test: tests/test
 	cd tests && ./test
 ##############################################################################
 
-doc: doxygen-run
+TEXPDF=
+PDFLATEX_FLAGS= -shell-escape
+
+if HAVE_PDFLATEX
+TEXPDF+=doc/design.pdf
+endif
+
+doc: doxygen-run $(TEXPDF)
 	make doxygen-pdf
-# TODO build design doc
+
+doc/%.pdf: $(abs_srcdir)/doc/%.tex
+	cd $(dir $@) && $(PDFLATEX) $(PDFLATEX_FLAGS) $<
+	cd $(dir $@) && $(PDFLATEX) $(PDFLATEX_FLAGS) $<
 
 include doxygen.mk.am
 
-MOSTLYCLEANFILES=$(DX_CLEANFILES)
+MOSTLYCLEANFILES=$(DX_CLEANFILES) $(TEXPDF)

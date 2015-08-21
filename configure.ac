@@ -49,6 +49,12 @@ DX_DOXYGEN_FEATURE(ON)
 DX_PDF_FEATURE(ON)
 DX_HTML_FEATURE(ON)
 
+AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
+if test -z "$PDFLATEX"; then
+  AC_MSG_WARN([Cannot build design document: require pdflatex])
+fi
+AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
+
 # Link in test files
 AC_CONFIG_LINKS([
     tests/data/long_1.csv:tests/data/long_1.csv

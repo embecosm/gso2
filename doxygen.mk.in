@@ -84,7 +84,7 @@ DIST_COMMON = $(srcdir)/doxygen.mk.in $(srcdir)/doxygen.mk.am \
 	$(top_srcdir)/tests/data/sparse_4.csv \
 	$(top_srcdir)/tests/data/sparse_5.csv \
 	$(top_srcdir)/tests/data/standard_1.csv \
-	$(top_srcdir)/tests/data/standard_2.csv README TODO \
+	$(top_srcdir)/tests/data/standard_2.csv README \
 	build-aux/compile build-aux/depcomp build-aux/install-sh \
 	build-aux/missing $(top_srcdir)/build-aux/compile \
 	$(top_srcdir)/build-aux/install-sh \
@@ -208,6 +208,7 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PDFLATEX = @PDFLATEX@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@

@@ -77,6 +77,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = gsotk$(EXEEXT) tests/test$(EXEEXT)
+@HAVE_PDFLATEX_TRUE@am__append_1 = doc/design.pdf
 DIST_COMMON = $(srcdir)/doxygen.mk.am $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(top_srcdir)/configure \
 	$(am__configure_deps) $(top_srcdir)/doc/doxygen-config.in \
@@ -86,7 +87,7 @@ DIST_COMMON = $(srcdir)/doxygen.mk.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/tests/data/sparse_5.csv \
 	$(top_srcdir)/tests/data/standard_1.csv \
 	$(top_srcdir)/tests/data/standard_2.csv \
-	$(top_srcdir)/build-aux/depcomp README TODO build-aux/compile \
+	$(top_srcdir)/build-aux/depcomp README build-aux/compile \
 	build-aux/depcomp build-aux/install-sh build-aux/missing \
 	$(top_srcdir)/build-aux/compile \
 	$(top_srcdir)/build-aux/install-sh \
@@ -280,6 +281,7 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PDFLATEX = @PDFLATEX@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -365,6 +367,9 @@ tests_test_SOURCES = tests/test_main.cpp \
 			 $(TK_SRCLIST)
 
 tests_tests_CXXFLAGS = -O0
+##############################################################################
+TEXPDF = $(am__append_1)
+PDFLATEX_FLAGS = -shell-escape
 @DX_COND_doc_TRUE@@DX_COND_html_TRUE@DX_CLEAN_HTML = @DX_DOCDIR@/html
 @DX_COND_chm_TRUE@@DX_COND_doc_TRUE@DX_CLEAN_CHM = @DX_DOCDIR@/chm
 @DX_COND_chi_TRUE@@DX_COND_chm_TRUE@@DX_COND_doc_TRUE@DX_CLEAN_CHI = @DX_DOCDIR@/@PACKAGE@.chi
@@ -389,8 +394,7 @@ tests_tests_CXXFLAGS = -O0
 @DX_COND_doc_TRUE@    $(DX_CLEAN_PDF) \
 @DX_COND_doc_TRUE@    $(DX_CLEAN_LATEX)
 
-# TODO build design doc
-MOSTLYCLEANFILES = $(DX_CLEANFILES)
+MOSTLYCLEANFILES = $(DX_CLEANFILES) $(TEXPDF)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -1186,10 +1190,13 @@ uninstall-am: uninstall-binPROGRAMS
 
 test: tests/test
 	cd tests && ./test
-##############################################################################
 
-doc: doxygen-run
+doc: doxygen-run $(TEXPDF)
 	make doxygen-pdf
+
+doc/%.pdf: $(abs_srcdir)/doc/%.tex
+	cd $(dir $@) && $(PDFLATEX) $(PDFLATEX_FLAGS) $<
+	cd $(dir $@) && $(PDFLATEX) $(PDFLATEX_FLAGS) $<
 
 @DX_COND_doc_TRUE@@DX_COND_ps_TRUE@doxygen-ps: @DX_DOCDIR@/@PACKAGE@.ps
 
