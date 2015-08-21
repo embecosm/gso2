@@ -76,8 +76,10 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = gsotk$(EXEEXT) tests/test$(EXEEXT)
-@HAVE_PDFLATEX_TRUE@am__append_1 = doc/design.pdf
+bin_PROGRAMS = gsotk$(EXEEXT) tests/test$(EXEEXT) $(am__EXEEXT_1)
+##############################################################################
+@HAVE_MPI_TRUE@am__append_1 = gsotk_parallel
+@HAVE_PDFLATEX_TRUE@am__append_2 = doc/design.pdf
 DIST_COMMON = $(srcdir)/doxygen.mk.am $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(top_srcdir)/configure \
 	$(am__configure_deps) $(top_srcdir)/doc/doxygen-config.in \
@@ -95,7 +97,8 @@ DIST_COMMON = $(srcdir)/doxygen.mk.am $(srcdir)/Makefile.in \
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
-	$(top_srcdir)/m4/ax_prog_doxygen.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/ax_mpi.m4 $(top_srcdir)/m4/ax_prog_doxygen.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -105,6 +108,7 @@ CONFIG_CLEAN_FILES = doc/doxygen-config
 CONFIG_CLEAN_VPATH_FILES = tests/data/long_1.csv tests/data/long_2.csv \
 	tests/data/sparse_4.csv tests/data/sparse_5.csv \
 	tests/data/standard_1.csv tests/data/standard_2.csv
+@HAVE_MPI_TRUE@am__EXEEXT_1 = gsotk_parallel$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
@@ -117,6 +121,16 @@ am__objects_2 = $(am__objects_1) src/utility.$(OBJEXT) \
 am_gsotk_OBJECTS = src/main.$(OBJEXT) $(am__objects_2)
 gsotk_OBJECTS = $(am_gsotk_OBJECTS)
 gsotk_LDADD = $(LDADD)
+am__gsotk_parallel_SOURCES_DIST = src/main_parallel.cpp \
+	libraries/cppformat/format.cc src/utility.cpp \
+	src/algorithms/canonicalIteratorBasic.cpp \
+	src/algorithms/canonicalIteratorGeneric.cpp \
+	src/algorithms/canonicalIteratorLiveness.cpp \
+	src/algorithms/constantIterator.cpp
+@HAVE_MPI_TRUE@am_gsotk_parallel_OBJECTS =  \
+@HAVE_MPI_TRUE@	src/main_parallel.$(OBJEXT) $(am__objects_2)
+gsotk_parallel_OBJECTS = $(am_gsotk_parallel_OBJECTS)
+gsotk_parallel_LDADD = $(LDADD)
 am__objects_3 = libraries/cppformat/tests_test-format.$(OBJEXT)
 am__objects_4 = $(am__objects_3) src/tests_test-utility.$(OBJEXT) \
 	src/algorithms/tests_test-canonicalIteratorBasic.$(OBJEXT) \
@@ -166,8 +180,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(gsotk_SOURCES) $(tests_test_SOURCES)
-DIST_SOURCES = $(gsotk_SOURCES) $(tests_test_SOURCES)
+SOURCES = $(gsotk_SOURCES) $(gsotk_parallel_SOURCES) \
+	$(tests_test_SOURCES)
+DIST_SOURCES = $(gsotk_SOURCES) $(am__gsotk_parallel_SOURCES_DIST) \
+	$(tests_test_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -272,6 +288,9 @@ LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
+MPICC = @MPICC@
+MPICXX = @MPICXX@
+MPILIBS = @MPILIBS@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -367,8 +386,10 @@ tests_test_SOURCES = tests/test_main.cpp \
 			 $(TK_SRCLIST)
 
 tests_tests_CXXFLAGS = -O0
+@HAVE_MPI_TRUE@gsotk_parallel_SOURCES = src/main_parallel.cpp $(TK_SRCLIST)
+
 ##############################################################################
-TEXPDF = $(am__append_1)
+TEXPDF = $(am__append_2)
 PDFLATEX_FLAGS = -shell-escape
 @DX_COND_doc_TRUE@@DX_COND_html_TRUE@DX_CLEAN_HTML = @DX_DOCDIR@/html
 @DX_COND_chm_TRUE@@DX_COND_doc_TRUE@DX_CLEAN_CHM = @DX_DOCDIR@/chm
@@ -519,6 +540,12 @@ src/algorithms/constantIterator.$(OBJEXT):  \
 gsotk$(EXEEXT): $(gsotk_OBJECTS) $(gsotk_DEPENDENCIES) $(EXTRA_gsotk_DEPENDENCIES) 
 	@rm -f gsotk$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(gsotk_OBJECTS) $(gsotk_LDADD) $(LIBS)
+src/main_parallel.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+
+gsotk_parallel$(EXEEXT): $(gsotk_parallel_OBJECTS) $(gsotk_parallel_DEPENDENCIES) $(EXTRA_gsotk_parallel_DEPENDENCIES) 
+	@rm -f gsotk_parallel$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(gsotk_parallel_OBJECTS) $(gsotk_parallel_LDADD) $(LIBS)
 tests/$(am__dirstamp):
 	@$(MKDIR_P) tests
 	@: > tests/$(am__dirstamp)
@@ -576,6 +603,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@libraries/cppformat/$(DEPDIR)/format.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@libraries/cppformat/$(DEPDIR)/tests_test-format.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/main_parallel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/tests_test-utility.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/utility.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/algorithms/$(DEPDIR)/canonicalIteratorBasic.Po@am__quote@

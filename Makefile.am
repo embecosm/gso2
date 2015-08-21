@@ -50,6 +50,14 @@ test: tests/test
 	cd tests && ./test
 ##############################################################################
 
+if HAVE_MPI
+bin_PROGRAMS += gsotk_parallel
+
+gsotk_parallel_SOURCES= src/main_parallel.cpp $(TK_SRCLIST)
+endif
+
+##############################################################################
+
 TEXPDF=
 PDFLATEX_FLAGS= -shell-escape
 

@@ -18,6 +18,12 @@ AC_PROG_MAKE_SET
 
 AX_CXX_COMPILE_STDCXX_11
 
+AX_MPI([HAVE_MPI=1])
+if test -z "$HAVE_MPI"; then
+    AC_MSG_WARN([Cannot build parallel superoptimizer: cannot find MPI])
+fi
+AM_CONDITIONAL([HAVE_MPI], test -n "$HAVE_MPI")
+
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lboost_unit_test_framework':
 AC_CHECK_LIB([boost_unit_test_framework], [main])
