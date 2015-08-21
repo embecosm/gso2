@@ -2,19 +2,20 @@
 
 \usepackage{todonotes}
 \usepackage{minted}
+\usepackage[linesnumbered]{algorithm2e}
 
 \begin{document}
 
-\title{GNU Superoptimizer 2: Design}
+\title{GNU Superoptimizer Toolkit}
 \author{James Pallister}
 
 \maketitle
 
 \section{Introduction}
 
-\todo[inline]{brief overview}
+This document describes the design of the GNU Superoptimizer Toolkit and motivation.
 
-\subsection{Version 2}
+\subsection{Toolkit}
 
 The original GNU Superoptimizer (GSO) was designed to find short branch-free sequences of instructions by bruteforcing a large number of possible sequences. There were several limitations, which this rewrite attempts to fix:
 
@@ -24,11 +25,8 @@ The original GNU Superoptimizer (GSO) was designed to find short branch-free seq
     % \item More
 \end{itemize}
 
-\todo[inline]{mention original GSO here}
-
 \todo[inline]{discuss superoptimization in general, and types of superoptimizers}
 \todo[inline]{the need for a toolkit, which allows architectures and different types of superoptimziers to be constucted easily}
-
 
 \section{Components}
 
@@ -43,7 +41,7 @@ Superoptimization generally consists of four main stages:
     \item[Costing.] Finally, if a valid sequence if found, it must be costed to work out whether it is actually better to use this sequence --- this will depend heavily on the specific metric optimizing for (e.g. time, energy, code size).
 \end{description}
 
-The toolkit contains algorithms for each of the stages. Below is a small (incomplete) example demonstrating the creation of a list of instructiosn (\texttt{insns}), which is iterated over (with \texttt{bruteforceIterate}). A register renaming pruning technique is applied (\texttt{canonicalIterator}). A quick test of the instruction sequences on an initial test vector is performed (\texttt{testEquivalence}), and then a larger number of tests is performed if this is found to pass (\texttt{testEquivalenceMultiple}).
+The toolkit contains algorithms for each of the stages. Below is a small (incomplete) example demonstrating the creation of a list of instructions (\texttt{insns}), which is iterated over (with \texttt{bruteforceIterate}). A register renaming pruning technique is applied (\texttt{canonicalIterator}). A quick test of the instruction sequences on an initial test vector is performed (\texttt{testEquivalence}), and then a larger number of tests is performed if this is found to pass (\texttt{testEquivalenceMultiple}).
 
 \begin{minted}{c++}
     // Set up initial test vectors, mach_initial
@@ -113,6 +111,8 @@ Important functions provided by \texttt{TargetMachine<...>}:
     The function can optionally provide a list of register mappings between the two states. If the current state does contain the other state, this mapping is a list of register pairs, where the first register is the register number in the current state, and the second is the register number in the \texttt{other} state.
 \end{description}
 
+Further extensions to TargetMachine include TargetMachineWithFlags, and GenericTargetMachine. The TargetMachineWithFlags is a simple extension to include a number of flags in the processor state. The GenericTargetMachine class inherits from TargetMachineWithFlags, and adds functions to handle memory, and comparisons with memory operands.
+
 \subsection{Instructions}
 
 Each instruction the processor can execute is represented as its own class, and C++'s virtual function dispatch can be used to allow simulation of an arbitrary instruction sequence. The instructions themselves hold no state, and instead purely operate on a \texttt{TargetMachineBase}, and a list of \texttt{Slot}s. The instruction provides several methods to enable the execution of the instruction, as well as helper functions, such as returning the number of slots the instruction requires, and input and output of instructions as strings. The key methods are listed below.
@@ -176,31 +176,211 @@ The register slot is most commonly used by instructions, representing which regi
 
 \todo[inline]{Give an example of constructing a superoptimizer}
 
+\section{Canonical Register Iterators}
+The canonical register iterators form a complex part of the superoptimizer, attempting to reduce the number of register assignments that have to be explored for each instruction sequence. It does this by recognising that many instruction sequences are functionally identically, as long as the registers move the values into the correct places. For example, the following instruction sequences are functionally identical, if the registers can be renamed:
+
+\begin{minipage}{0.3\textwidth}
+\begin{verbatim}
+    add r5, r1
+    mul r3, r5
+\end{verbatim}
+\end{minipage}
+\hspace{1cm}
+\begin{minipage}{0.3\textwidth}
+\begin{verbatim}
+    add r0, r1
+    mul r2, r0
+\end{verbatim}
+\end{minipage}
+
+\subsection{Basic canonical iterator}
+This is implemented by the basicCanonicalIterator class. This iterator just iterates through the classes of identical register assignments, ignoring constraints imposed by each register slot. Therefore, if any of the register slots do not accept all registers, invalid sequences may be generated (i.e. instructions which attempt to use registers that they cannot).
+
+The basic algorithm for this iterator is given in Algorithm~\ref{alg:basic_canonical}. This algorithm increments each slot in turn. If the value in the slot is larger than the maximum value in the sequence plus one, the value is reset and the next slot tried. Otherwise a valid sequence has been found and the algorithm terminates. The set of values computed is equivalent to a `restricted growth string', and set partitions.
+\begin{algorithm}
+    \KwData{$R$, A list of registers.}
+    \KwResult{The next canonical sequence.}
+    \KwResult{True if there are more sequences. False if the sequence has wrapped around.}
+    $i = |R| - 1$\;
+    \While{$i \geq 0$}{
+    \eIf{$R_i >\max{R}$+1}{
+        $R_i = 0$\;
+    }{
+        $R_i = R_i + 1$\;
+        \Return true\;
+    }
+    $i = i - 1$\;
+    }
+    \Return false\;
+\caption{Basic canonical iterator algorithm.}
+\label{alg:basic_canonical}
+\end{algorithm}
+
+\subsection{Generic canonical iterator}
+
+The generic canonical iterator can account for differing register classes, while still only generating unique register assignments. This process is must slow, since arbitrary constraints must be obeyed. Typically the algorithm performs slower when the register classes differ significantly.
+
+The generic canonical iterator uses the basic iterator to generate the sets of possible remappings, see Algorithm~\ref{alg:generic_canonical}. However, not all remappings are possible given the register class constraints, so a remapping function attempts to find a mapping, if it exists.
+
+Algorithm~\ref{alg:generic_remap} gives the algorithm to determine whether a mapping exists from a given set of register labels, and their register classes. The basic algorithm is a greedy, backtracking search for an assignment to each position in the array, with several additions to make the search faster. In the algorithm, $M$, is the sequence of remapped register labels (i.e. the result). At each iteration of the main loop, the possible values that slot can take is calculated, $P$. This is the intersection of all register classes where the register label is identical (lines 19--22).
+
+\begin{minipage}{0.3\textwidth}
+\begin{verbatim}
+    add r0, r1
+    mul r2, r0
+\end{verbatim}
+\end{minipage}
+
+For example, in the above sequence, the intersection of the register class for the first slot of \texttt{add} and the second slot of \texttt{mul} would be taken. These are the possible values that \texttt{r0} could be remapped to.
+
+The variable $T$ keeps track of the current assignment out of the list of possibles ($P$). If all possible assignments have been exhausted, then the algorithm must backtrack and try a different previous assignment (lines 22--34). Otherwise the new assignment to the current slot is accepted, and the next assignment attempted (lines 35--38).
+
+The first section of the loop, lines 5--18 handles the case where a register has already been renamed --- in the above example this would occur when reaching the second slot of \texttt{mul}, since the \texttt{r0} in the first slot of \texttt{add} has already been remapped. These lines also handle this case when backtracking (the condition when $T_i=-1$).
+
+Various speed ups can be made to this algorithm, such as precomputing the intersections of the classes.
+
+
+\begin{algorithm}
+    \KwData{$R$, A list of registers.}
+    \KwData{$S_k$, A list of sets of possible registers. Each $S_k$ gives the valid assignments to $R_k$.}
+    \KwResult{The next canonical sequence.}
+    \KwResult{True if there are more sequences. False if the sequence has wrapped around.}
+    \While{basicCanonicalIterator($R$) $=$ true}{
+        $success$, $M$ = Remap($R$, $S$)\;
+        \If{$success$ = true}{
+            Set the register IDs to $M$\;
+            \Return true\;
+        }
+    }
+    \Return false;
+\caption{Algorithm for a generic canonical iterator.}
+\label{alg:generic_canonical}
+\end{algorithm}
+
+\begin{algorithm}
+    \KwData{$R$, A list of registers.}
+    \KwData{$S_k$, A list of sets of possible registers. Each $S_k$ gives the valid assignments to $R_k$.}
+    \KwData{True if the sequence can be renamed given the register class constraints.}
+    \KwData{If above is true, the renamed sequence.}
+
+    $i = 0$\;
+    $T = $ A sequence of $|R|$ zeroes\;
+    $M = $ the output remapping;
+    $success = $ false\;
+    \While{$i < |R|$}{
+        \If{$R_i$ appears in the sequence $R_0,...,R_{i-1}$}{
+            \eIf{$T_i \neq -1$}{
+                $k = $ value of $M_j$ where $R_j = R_i$\;
+                $T_i = -1$\;
+                $i = i + 1$\;
+                \lIf{$i \geq |R|$}{
+                    $success = $ true
+                }
+                continue\;
+            }{
+                \lIf{$i = 0$}{break}
+                $T_i = 0$\;
+                $i = i - 1$\;
+                continue\;
+            }
+        }
+
+        $P =$ set of all possible registers\;
+        \ForEach{$j$ in $R_0, ..., R_j,...$ where $R_j = R_i$}{
+            $P = P \cap S_j$
+        }
+
+        \If{$|P| = 0$}{
+            \lIf{$i = 0$}{break}
+            $T_i = 0$\;
+            $i = i - 1$\;
+            continue\;
+        }
+
+        \If{$T_i \geq |P|$ or $T_i > |P| - i$}{
+            \lIf{$i = 0$}{break}
+            $T_i = 0$\;
+            $i = i - 1$\;
+            continue\;
+        }
+        $M_i = P_{T_i}$\;
+        $T_i = T_i + 1$\;
+        $i = i + 1$\;
+        \lIf{$i \geq |R|$}{
+            $success = $ true
+        }
+    }
+    \Return $success$, $M$\;
+\caption{The algorithm for canonicalising a sequence given arbitrary constraints on the register classes.}
+\label{alg:generic_remap}
+\end{algorithm}
+
+
 \section{Speed tips}
 
-The canonicalIterator is quite slow. An alternative method to speed up the search, is to use the canonicalIteratorBasic to eliminate the naming. However, this may assign incorrect register classes, therefore canonicalMapping can be used for a matching sequence to see if it can be remapped onto correct registers.
+The canonicalIterator is quite slow. An alternative method to speed up the search, is to use the canonicalIteratorBasic to eliminate the renaming. However, this may assign incorrect register classes, therefore canonicalMapping can be used for a matching sequence to see if it can be remapped onto correct registers.
 
 \section{Pitfalls}
 
 If many registers are written during the instruction sequence, then there could be many permutations of register combinations to try in \texttt{containsState}. This can occur if flags are used as registers --- since many instructions could set many flags, there may be many registers written, and a lot of combinations to to try.
 
 
-\section{Further improvements}
+\section{Further improvements / TODO list}
 
-Can the \texttt{containsState} function utilise register class information, to speed up the comparison?
+\begin{enumerate}
+    \item Can the \texttt{containsState} function utilise register class information, to speed up the comparison?
+    \item Implement an iterate-by-cost iterator. This is an iterator for instructions, which will choose instruction sequences of a certain cost. Method:
+        \begin{minted}[gobble=8]{python}
+        def costIteratorNext(insn_list, max_cost):
+            for insn in insn_list:
+                if insn.cost < max_cost:
+                    l = costIteratorNext(insn_list, max_cost - insn.cost)
+                    if l is not False:
+                        return [insn] + l
+                    else:
+                        return False
+            return False
+        \end{minted}
 
+    This method returns a list of instructions whose cost totals \texttt{max\_cost}. This can be used for the various goal metric listed in the appendix.
+
+    \item Implement simultaneous sequence testing. A class which can have instruction sequences added to it. The class stores a specific test vector, used on the instruction sequences.
+
+    Requires TargetMachine, etc. to implement a `hash' function.
+
+    Possibly use libcuckoo (https://github.com/efficient/libcuckoo), or a bloom filter to speed the hashtable.
+
+    \item Liveness information. The canonical mapping could be extended to take liveness information into account. To implement this efficiently, iterating through the register sequence in register access order is needed (i.e. backtracking can be used to quickly exclude sequences with non-live reads). This may require some of the instructions to be rewritten so that their slots are accessed in order (i.e. instead of the write slot being 0, and read slots 1, and 2).
+    \item Commutativity information could be exploited. Register assignments could again be reduced.
+\end{enumerate}
+
+\newpage
 \appendix
 \section{Cost functions}
-\todo[inline]{how to deal with different cost functions, and whether the search should end when a solution is found, etc}
-\todo[inline]{for space, the searhc should end instantly}
+This appendix discusses the methodology required to tailor a superoptimizer to different cost metrics.
+
+\subsection{Code size}
+Code size can be handled easily by a superoptimizer, since it can be determined statically. The most effective way of optimising for this metric is to explore sequences in size order --- therefore the first correct sequence found is by definition the smallest. This can be extended into finding all sequences equal to the smallest size, allowing a further choice of sequence given other metrics.
+
+\subsection{Execution time}
+
+Execution time can be handled similarly to code size, however it is more difficult to estimate the execution time in advanced processors. For embedded processors the pipeline is typically simple enough that a cycle count can be assigned to each instruction, then instructions searched in ascending cost order. Unlike code size, the search should continue after finding a sequence, up to a specified additional cost --- this represents the inaccuracies in the model.
+
+Evaluating the exact execution time is difficult since it will often depend on the context in which it is executed. Preceding instructions and the state of the cache are all factors which can have significant impact on the speed of an instruction sequence.
+
+\subsection{Energy consumption}
+Energy consumption inherits all of the difficulties of execution time, and adds additional difficulties with the power of each instruction. Both power and time and related --- reducing the execution time may mean more instructions in parallel through the processor increasing power, and leading to no reduction in energy consumption. An energy model can be used to estimate the energy of each instruction, and this can be used to guide the search. As with execution time, the search should continue after finding a sequence, however, it should continue for longer, since there is the likelihood of greater inaccuracy.
 
 \section{Peephole superoptimization}
 
-\todo[inline]{changes required for peephole superoptimization}
-\todo[inline]{harvesting the sequences}
-\todo[inline]{changes to the testing routines}
+Peephole superoptimization is a technique to create new peephole optimisations. The main modification peephole superoptimization requires is to the sequence testing. The test routine must be changed from comparing two sequences, executing the sequence, then hashing the machine state. The hash of the machine state can then be looked up in a hash table, and if an entry is found, perform a more extensive check on the two sequences.
+
+By using a hash table in this way, multiple sequences can be explored simultaneously. A possible way to speed this up is with bloom filters --- this will enable a fast test for whether the sequence matches (to be tested).
+
+In addition to the modifications to the superoptimizer, a list of instruction sequences will have to input, likely from a precomputed file containing instruction sequences harvested from various executables. These can be used to seed the hashtable.
 
 \section{Stochastic superoptimization}
 \section{Parallelisation}
 
 \end{document}
+
