@@ -2,6 +2,8 @@
 
 \usepackage{todonotes}
 \usepackage{minted}
+\usepackage[margin=3cm]{geometry}
+\usepackage{dirtree}
 \usepackage[linesnumbered]{algorithm2e}
 
 \begin{document}
@@ -25,8 +27,85 @@ The original GNU Superoptimizer (GSO) was designed to find short branch-free seq
     % \item More
 \end{itemize}
 
-\todo[inline]{discuss superoptimization in general, and types of superoptimizers}
-\todo[inline]{the need for a toolkit, which allows architectures and different types of superoptimziers to be constucted easily}
+\subsection{Structure}
+
+The following diagram describes the key files in the toolkit.
+
+\dirtree{%
+    .1 /.
+    .2 src.
+    .3 algorithms.
+    .4 bruteforce.hpp
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}%
+        The bruteforce iterators.
+        \end{minipage}\\}.
+    .4 bruteforceByCost.hpp
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}%
+        Bruteforce in an order determined by an arbitrary cost function.
+        \end{minipage}\\}.
+    .4 canonicalIteratorBasic.\{cpp,hpp\}%
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        The basic iterator for register slots.
+        \end{minipage}}.
+    .4 canonicalIteratorGeneric.\{cpp,hpp\}%
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        The generic iterator for register slots.
+        \end{minipage}}.
+    .4 canonicalIteratorLiveness.\{cpp,hpp\}%
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        An experimental (non-functional) iterator which takes into account liveness information when iterating through registers.
+        \end{minipage}\\}.
+    .4 constantIterator.\{cpp,hpp\}%
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        The iterator for constant slots.
+        \end{minipage}}.
+    .4 test.hpp%
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        Algorithms for testing and executing instruction sequences.
+        \end{minipage}}.
+    .3 frontends%
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        A directory containing information about superoptimization targets.
+        \end{minipage}}.
+    .4 avr.hpp%
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        Example definitions for AVR.
+        \end{minipage}}.
+    .4 avr.yml%
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        Instruction information for AVR.
+        \end{minipage}}.
+    .3 parallel.
+    .4 mpi.hpp%
+        \DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        Functions for distributing work within the MPI framework.
+        \end{minipage}}.
+    .3 generate.py\DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        The script to generate \texttt{avr\_gen.hpp} from \texttt{avr.yml}.
+        \end{minipage}\\}.
+    .3 TargetMachine.hpp\DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        A basic definition of a processor's state, implementing just registers.
+        \end{minipage}}.
+    .3 TargetMachineWithFlags.hpp\DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        As above, but with processor flags.
+        \end{minipage}}.
+    .3 GenericTargetMachine.hpp\DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        As above, but with memory also.
+        \end{minipage}}.
+    .3 Instruction.hpp\DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        The generic base class for declaring instructions.
+        \end{minipage}\\}.
+    .3 slots.hpp\DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        The base definitions of a slot, register slot and constantslot.
+        \end{minipage}\\}.
+    .3 utility.\{cpp,hpp\}\DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        Some general utility functions, including printing and parsing instructions, and combinatorial generators.
+        \end{minipage}}.
+    .2 tests.
+    .3 *\DTcomment{\begin{minipage}[t]{0.47\textwidth}
+        Test of each component in the toolkit.
+        \end{minipage}}.
+}
 
 \section{Components}
 
@@ -166,15 +245,93 @@ The toolkit provides a base \texttt{Slot} class, as well as two derived classes,
 
 The register slot is most commonly used by instructions, representing which register should be retrieved from the frontend, and holding information about whether the register is read or written, as well as a list of possible registers (i.e. the register class). These properties are exploited by various algorithms to reduce the number of redundant sequences that are tested.
 
-\todo[inline]{concept of slots, different types of slots}
-\todo[inline]{different ways of iterating over these slots}
+The constant slot is used to hold the value of a constant that may be used by the instruction sequence.
+
+Various iterators are provide to efficiently iterate over these slots, assigning values to them.
 
 \subsection{Testing}
-\todo[inline]{ways of testing if a sequence is correct}
+
+The toolkit contains various functions for comparing instruction sequences to goal functions, or other instruction sequences.
 
 \section{Bruteforce superoptimizer example}
 
-\todo[inline]{Give an example of constructing a superoptimizer}
+The code below gives an example of a simple bruteforce superoptimizer. The superoptimizer creates a list of goal instructions from the string. Then it sets up arrays so that it bruteforces instruction sequences of four instructions. A machine state is set up for quick testing of the sequence, and then the loops for bruteforcing the instructions, registers and constants appear.
+
+\begin{minted}{c++}
+    string instruction_str =
+        "add r0, r0\n"
+        "add r0, r0";
+
+    auto insn_factories = AvrMachine::getInstructionFactories();
+
+    // Get a list of instructions and slots from the string
+    vector<Instruction*> goal_insns;
+    vector<Slot*>        goal_slots;
+
+    parseInstructionList(instruction_str, insn_factories,
+                              goal_insns, goal_slots);
+
+    vector<decltype(insn_factories)::iterator> current_factories;
+
+    // Superoptimize four instructions only
+    for(int i = 0; i < 4; ++i)
+        current_factories.push_back(insn_factories.begin());
+
+    // Set up an initial machine state for quick testing
+    AvrMachine mach_expected, mach_initial;
+
+    mach_initial.initialiseRandom();
+    mach_expected = mach_initial;
+
+    executeSequence(goal_insns, goal_slots, mach_expected);
+
+    do {
+        // Instruction sequence setup
+        vector<Instruction*> insns;
+
+        // Create the instructions as per the current iterator
+        for(auto &factory: current_factories)
+        {
+            Instruction *insn = (*factory)();
+
+            insns.push_back(insn);
+
+            auto s = insn->getSlots();
+            slots.insert(slots.end(), s.begin(), s.end());
+        }
+
+        // register iterator
+        canonicalIterator reg_iter(slots);
+
+        // constant iterator
+        constantIterator cons_iter(slots);
+
+        do {
+            do {
+                // test to quickly exclude wrong sequences
+                if(testEquivalence(insns, slots, mach_initial, mach_expected))
+                {
+                    bool correct =
+                        testEquivalenceMultiple<AvrMachine>(insns, slots
+                                                       goal_insns, goal_slots);
+
+                    if(correct)
+                    {
+                        cout << "Found:\n";
+                        cout << print(insns, slots) << endl;
+                    }
+                }
+            } while(reg_iter.next());
+        } while(cons_iter.next());
+
+        // Free the instructions and slots
+        for(auto slot: slots)
+            delete slot;
+        for(auto insn: insns)
+            delete insn;
+    } while(bruteforceIterate(insn_factories, current_factories));
+
+\end{minted}
 
 \section{Canonical Register Iterators}
 The canonical register iterators form a complex part of the superoptimizer, attempting to reduce the number of register assignments that have to be explored for each instruction sequence. It does this by recognising that many instruction sequences are functionally identically, as long as the registers move the values into the correct places. For example, the following instruction sequences are functionally identical, if the registers can be renamed:
@@ -380,7 +537,16 @@ By using a hash table in this way, multiple sequences can be explored simultaneo
 In addition to the modifications to the superoptimizer, a list of instruction sequences will have to input, likely from a precomputed file containing instruction sequences harvested from various executables. These can be used to seed the hashtable.
 
 \section{Stochastic superoptimization}
+
+Stochastic superoptimization does not search every possible instruction sequence, instead it attempts to evaluate how close the current sequence is to the desired one in terms of functionality, and jump towards that sequence. This can be achieved with the toolkit by replacing the instruction, register and constant iterators with a class that will selected their values based on random jumps.
+
 \section{Parallelisation}
+
+The toolkit contains functions to distribution work over MPI. The functions just send a set of integers iteratively to slave processes. When an item of work is finished, the slave requests a new work item. Due to MPI's limitations, just integers are distributed, rather than arbitrary objects. Therefore these integers are likely to be indices into array which will selected the exact work to be done (for example, indices into a list of instructions).
+
+An example parallel superoptimizer is given with the toolkit. This superoptimizer distributes instruction sequences to each worker, which then iterates through the possible registers and constants that the sequence can take. This requires minimal communication between processes.
+
+One problem with this approach is that the instruction sequences can take drastically different amounts of time, depending on the number of slots that each instruction has. Therefore, if a slave gets given an instruction sequence which will take a long time at the end of the search, all other nodes will be waiting for this to complete. This can be solved by using the bruteforceByCost iterator, which takes a cost function, and attempts to iterate in cost order. Therefore by giving the appropriate cost function, the iterator can be made to iterate with the slowest instruction sequence first.
 
 \end{document}
 
