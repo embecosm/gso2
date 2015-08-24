@@ -58,13 +58,33 @@ int main(int argc, char *argv[])
             factory_ids.push_back(i);
 
         vector<vector<int>> factory_lists;
+        vector<int> insn_sizes;
 
         cout << "MASTER "<<endl;
 
         for(auto &f: current_factories)
+        {
             factory_lists.push_back(factory_ids);
+        }
 
-        distributeTasks(factory_lists);
+        for(auto &f: insn_factories)
+        {
+            auto insn = f();
+            insn_sizes.push_back(insn->getNumberOfSlots());
+            delete insn;
+        }
+
+        distributeTasks(factory_lists,
+            [&](std::vector<std::vector<int>::iterator> &iters)
+            {
+                int i = 1;
+
+                for(auto &it: iters)
+                    i *= insn_sizes[*it]+1;
+                // cout << i << endl;
+                return -i;
+            }
+            );
 
         MPI_Finalize();
         return 0;
