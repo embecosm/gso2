@@ -141,6 +141,7 @@ am_tests_test_OBJECTS = tests/tests_test-test_main.$(OBJEXT) \
 	tests/tests_test-avr_instruction.$(OBJEXT) \
 	tests/tests_test-slots.$(OBJEXT) \
 	tests/tests_test-bruteforce.$(OBJEXT) \
+	tests/tests_test-bruteforceByCost.$(OBJEXT) \
 	tests/tests_test-test.$(OBJEXT) \
 	tests/tests_test-canonical_slots.$(OBJEXT) \
 	tests/tests_test-frontend.$(OBJEXT) \
@@ -379,6 +380,7 @@ tests_test_SOURCES = tests/test_main.cpp \
 			 tests/avr_instruction.cpp \
 			 tests/slots.cpp \
  			 tests/bruteforce.cpp \
+ 			 tests/bruteforceByCost.cpp \
 			 tests/test.cpp \
 			 tests/canonical_slots.cpp \
 			 tests/frontend.cpp \
@@ -560,6 +562,8 @@ tests/tests_test-slots.$(OBJEXT): tests/$(am__dirstamp) \
 	tests/$(DEPDIR)/$(am__dirstamp)
 tests/tests_test-bruteforce.$(OBJEXT): tests/$(am__dirstamp) \
 	tests/$(DEPDIR)/$(am__dirstamp)
+tests/tests_test-bruteforceByCost.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
 tests/tests_test-test.$(OBJEXT): tests/$(am__dirstamp) \
 	tests/$(DEPDIR)/$(am__dirstamp)
 tests/tests_test-canonical_slots.$(OBJEXT): tests/$(am__dirstamp) \
@@ -616,6 +620,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/algorithms/$(DEPDIR)/tests_test-constantIterator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/tests_test-avr_instruction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/tests_test-bruteforce.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/tests_test-bruteforceByCost.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/tests_test-canonical_slots.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/tests_test-frontend.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/tests_test-slots.Po@am__quote@
@@ -694,6 +699,20 @@ tests/tests_test-bruteforce.obj: tests/bruteforce.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='tests/bruteforce.cpp' object='tests/tests_test-bruteforce.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_test_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/tests_test-bruteforce.obj `if test -f 'tests/bruteforce.cpp'; then $(CYGPATH_W) 'tests/bruteforce.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/bruteforce.cpp'; fi`
+
+tests/tests_test-bruteforceByCost.o: tests/bruteforceByCost.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_test_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/tests_test-bruteforceByCost.o -MD -MP -MF tests/$(DEPDIR)/tests_test-bruteforceByCost.Tpo -c -o tests/tests_test-bruteforceByCost.o `test -f 'tests/bruteforceByCost.cpp' || echo '$(srcdir)/'`tests/bruteforceByCost.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/tests_test-bruteforceByCost.Tpo tests/$(DEPDIR)/tests_test-bruteforceByCost.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='tests/bruteforceByCost.cpp' object='tests/tests_test-bruteforceByCost.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_test_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/tests_test-bruteforceByCost.o `test -f 'tests/bruteforceByCost.cpp' || echo '$(srcdir)/'`tests/bruteforceByCost.cpp
+
+tests/tests_test-bruteforceByCost.obj: tests/bruteforceByCost.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_test_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/tests_test-bruteforceByCost.obj -MD -MP -MF tests/$(DEPDIR)/tests_test-bruteforceByCost.Tpo -c -o tests/tests_test-bruteforceByCost.obj `if test -f 'tests/bruteforceByCost.cpp'; then $(CYGPATH_W) 'tests/bruteforceByCost.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/bruteforceByCost.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/tests_test-bruteforceByCost.Tpo tests/$(DEPDIR)/tests_test-bruteforceByCost.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='tests/bruteforceByCost.cpp' object='tests/tests_test-bruteforceByCost.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_test_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tests/tests_test-bruteforceByCost.obj `if test -f 'tests/bruteforceByCost.cpp'; then $(CYGPATH_W) 'tests/bruteforceByCost.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/bruteforceByCost.cpp'; fi`
 
 tests/tests_test-test.o: tests/test.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_test_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tests/tests_test-test.o -MD -MP -MF tests/$(DEPDIR)/tests_test-test.Tpo -c -o tests/tests_test-test.o `test -f 'tests/test.cpp' || echo '$(srcdir)/'`tests/test.cpp

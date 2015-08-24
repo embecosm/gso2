@@ -39,6 +39,7 @@ tests_test_SOURCES=tests/test_main.cpp \
 			 tests/avr_instruction.cpp \
 			 tests/slots.cpp \
  			 tests/bruteforce.cpp \
+ 			 tests/bruteforceByCost.cpp \
 			 tests/test.cpp \
 			 tests/canonical_slots.cpp \
 			 tests/frontend.cpp \
