@@ -61,10 +61,11 @@ public:
         flags[flg] = value;
     }
 
-    bool equivalentState(TargetMachine &other)
-    {
-        assert(!"TODO implement me.");
-    }
+    // bool equivalentState(TargetMachineWithFlags &other)
+    // {
+    //     assert(!"TODO implement me.");
+    //     return false;
+    // }
 
 protected:
     bool flags[NumberOfFlags];
