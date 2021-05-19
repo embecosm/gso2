@@ -5,6 +5,7 @@
 #include <set>
 #include <map>
 #include <functional>
+#include <iostream>
 
 /*! \class bruteforceByCost
 
