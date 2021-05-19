@@ -103,7 +103,7 @@ def apply_defaults(params, defaults):
     try:
         if params is None:
             params = defaults
-        if type(params) in [str, unicode, int, long, float]:
+        if type(params) in [str, int, float]:
             pass
         elif isinstance(params, list):
             # If there is a default entry, the list must be length one
@@ -126,7 +126,7 @@ def apply_defaults(params, defaults):
                 raise ValueError("Params dictionary met with non-dictionary default: {}, {}".format(params, defaults))
         else:
             raise RuntimeException("Unable to apply defaults to {} (from {})".format(params, defaults))
-    except TypeError, e:
+    except TypeError as e:
         raise TypeError("TypeError: Unable to apply defaults to {} (from {})".format(params, defaults))
     return params
 
